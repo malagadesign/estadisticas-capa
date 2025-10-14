@@ -1,0 +1,199 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║             AUDITORÍA DE SEGURIDAD - SISTEMA DE ENCUESTAS CAPA               ║
+║                        Fecha: 8 de Octubre, 2025                             ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  1. CÓDIGO MALICIOSO
+═══════════════════════════════════════════════════════════════════════════════
+
+    ✅ NO SE DETECTÓ CÓDIGO MALICIOSO
+    
+    - Sin backdoors
+    - Sin shells ocultas
+    - Sin código ofuscado sospechoso
+    - Sin conexiones externas no autorizadas
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  2. VULNERABILIDADES CRÍTICAS ENCONTRADAS
+═══════════════════════════════════════════════════════════════════════════════
+
+    🔴 CRÍTICO (5 vulnerabilidades)
+    ├─ Credenciales hardcodeadas en código fuente
+    ├─ Contraseñas almacenadas en texto plano
+    ├─ Inyección SQL (sin prepared statements)
+    ├─ Sin protección CSRF
+    └─ Autenticación sin límite de intentos
+
+    🟠 ALTO (4 vulnerabilidades)
+    ├─ Sesiones sin configuración de seguridad
+    ├─ Generación de tokens con rand() (no seguro)
+    ├─ Exposición de errores en pantalla
+    └─ Hash predictible para autenticación
+
+    🟡 MEDIO (3 vulnerabilidades)
+    ├─ Sin validación estricta de includes dinámicos
+    ├─ Sin enforcement de HTTPS
+    └─ Falta de headers de seguridad
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  3. CREDENCIALES EXPUESTAS
+═══════════════════════════════════════════════════════════════════════════════
+
+    ⚠️  CAMBIAR INMEDIATAMENTE:
+
+    Base de Datos:
+    └─ Usuario: mlgcapa_enc
+    └─ Password: 7CAmlgPA7
+
+    Email SMTP:
+    └─ Usuario: estadisticas@capa.org.ar
+    └─ Password: Capa1932$ (también @Mercado2024, @Paraguay1932)
+
+    Ubicaciones:
+    ├─ conector.php (líneas 39-42, 160-182)
+    ├─ conector_viejo.php (líneas 39-42, 160-184)
+    └─ index.php (líneas 200-204)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  4. ARCHIVOS A ELIMINAR
+═══════════════════════════════════════════════════════════════════════════════
+
+    🗑️  Archivos innecesarios/peligrosos:
+
+    ├─ conector_viejo.php
+    ├─ cuenta/z$ ADM.php
+    ├─ cuenta/z$ cambioPas.php
+    ├─ ver/z$ ultimoAdm.php
+    ├─ ver/z$ ultimoSocioAdmExcel.php 2024-01-30
+    ├─ ver/z$ ultimoSocioAdmExcel.php 2024-02-09
+    ├─ PHPMailer/examples/ (todo el directorio)
+    └─ PHPMailer/test/ (todo el directorio)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  5. ACCIONES INMEDIATAS (HOY)
+═══════════════════════════════════════════════════════════════════════════════
+
+    1. ⚡ Cambiar contraseña de base de datos
+    2. ⚡ Cambiar contraseña de email
+    3. ⚡ Cambiar contraseñas de todos los usuarios
+    4. ⚡ Revisar logs de acceso en busca de compromisos
+    5. ⚡ Mover credenciales a archivo .env
+    6. ⚡ Desactivar display_errors
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  6. PRIORIDADES ESTA SEMANA
+═══════════════════════════════════════════════════════════════════════════════
+
+    Semana 1:
+    ├─ Implementar password hashing (bcrypt/argon2)
+    ├─ Migrar a prepared statements
+    ├─ Implementar tokens CSRF
+    ├─ Configurar sesiones seguras
+    ├─ Agregar límite de intentos de login
+    └─ Forzar HTTPS
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  7. NIVEL DE RIESGO ACTUAL
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ╔════════════════════════════╗
+                    ║   RIESGO: MUY ALTO 🔴      ║
+                    ╚════════════════════════════╝
+
+    Sin código malicioso, pero vulnerable a:
+    ├─ Robo de credenciales
+    ├─ Inyección SQL
+    ├─ CSRF
+    ├─ Fuerza bruta
+    └─ Man-in-the-middle
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  8. IMPACTO POTENCIAL
+═══════════════════════════════════════════════════════════════════════════════
+
+    Si el sistema es comprometido:
+
+    ✗ Acceso total a la base de datos
+    ✗ Robo de información de socios
+    ✗ Modificación de datos de encuestas
+    ✗ Envío de correos desde cuenta corporativa
+    ✗ Creación de usuarios administrativos
+    ✗ Extracción de credenciales de usuarios
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  9. DOCUMENTOS GENERADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+    📄 INFORME_SEGURIDAD.md
+       └─ Análisis detallado completo
+       └─ Todas las vulnerabilidades explicadas
+       └─ Código de ejemplo para correcciones
+
+    📄 PLAN_CORRECCION.md
+       └─ Pasos específicos para cada corrección
+       └─ Código exacto para implementar
+       └─ Checklist de verificación
+
+    📄 RESUMEN_AUDITORIA.txt (este archivo)
+       └─ Vista rápida del estado del sistema
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  10. COMANDOS RÁPIDOS
+═══════════════════════════════════════════════════════════════════════════════
+
+    # Revisar logs de acceso sospechoso
+    grep -i "conector.php" /var/log/apache2/access.log
+
+    # Buscar intentos de SQL injection
+    grep -i "union\|select.*from" /var/log/apache2/access.log
+
+    # Generar nueva contraseña segura
+    openssl rand -base64 32
+
+    # Backup antes de cambios
+    tar -czf backup_$(date +%Y%m%d).tar.gz /path/to/encuestas/
+    mysqldump -u mlgcapa_enc -p mlgcapa_enc > backup_$(date +%Y%m%d).sql
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  CONCLUSIÓN
+═══════════════════════════════════════════════════════════════════════════════
+
+  ✅ Sistema limpio de malware
+  ❌ Sistema altamente vulnerable
+  ⚠️  Requiere correcciones urgentes
+
+  Recomendación: Implementar las correcciones del PLAN_CORRECCION.md
+                 antes de mantener el sistema en producción.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  SIGUIENTE PASO
+═══════════════════════════════════════════════════════════════════════════════
+
+  1. Leer INFORME_SEGURIDAD.md para entender todas las vulnerabilidades
+  2. Seguir PLAN_CORRECCION.md paso a paso
+  3. Contactar si necesitas ayuda con la implementación
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+  Fecha de auditoría: 8 de Octubre, 2025
+  Auditor: Análisis automatizado de seguridad
+  
+  Este informe es CONFIDENCIAL y debe tratarse con la máxima seguridad.
+
+═══════════════════════════════════════════════════════════════════════════════

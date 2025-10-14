@@ -1,0 +1,52 @@
+# Variables de entorno con credenciales
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+log/*.log
+
+# Archivos de backup
+*.bak
+*.old
+*_viejo.php
+z$*.php
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*~
+
+# Directorios de sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Composer (si se usa en el futuro)
+/vendor/
+
+# Node modules (si se usa en el futuro)
+node_modules/
+
+# Archivos de configuración local
+config.local.php
+
+# Backups de base de datos
+*.sql
+*.sql.gz
+
+# PHPMailer tests y examples (no necesarios en producción)
+PHPMailer/test/
+PHPMailer/examples/
+cuenta/PHPMailer/test/
+cuenta/PHPMailer/examples/
+usuarios/PHPMailer/test/
+usuarios/PHPMailer/examples/

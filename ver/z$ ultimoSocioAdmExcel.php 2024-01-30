@@ -1,0 +1,181 @@
+<div id="admExcel" class="tab-pane fade">
+	<div class="tab-ctn">
+		<p style="font-size: large; font-weight: 200;">Carga masiva</p>
+		<p class="tab-mg-b-0">Manejo de datos en forma masiva a través de Excel. Por favor no poner formato y sólo completar con números.</p>
+	</div>
+	<div class="form-group">
+		<br><br>
+		<button class="btn btn-success notika-btn-success waves-effect" style="top: 10px;" onclick="crearArchivoExcel();">Descargar modelo</button>
+		<br><br><br>
+	</div>
+	<div class="form-group">
+		<p>Y subirlo sin cambiar su estructura luego de completarlo:</p>
+	</div>
+	<div class="form-group">
+		<div id="drop-area" style="border: 2px dashed #ccc; padding: 20px; text-align: center;">
+			<i class="notika-icon notika-cloud" style="font-size: 30px;"></i>
+			<h2 style="font-size: 16px;">Arrastrar aquí el archivo, o click para seleccionarlo.</h2>
+			<p><span class="note needsclick">(Sólo se podrá trabajar con el modelo descargado.)</span></p>
+		</div>
+		<br>
+		<div id="dropzone1" class="multi-uploader-cs">
+			<form action="javascript:leerArchivoExcel();" class="dropzone dropzone-nk needsclick" id="demo1-upload">
+				<div class="dz-message needsclick download-custom">
+					<i class="notika-icon notika-cloud"></i>
+					<h2>*******************.</h2>
+					<p><span class="note needsclick">(Sólo se podrá trabajar con el modelo descargado.)</span></p>
+				</div>
+			</form>
+		</div>
+	</div>
+	<br><br>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+
+
+
+<script>	
+function crearArchivoExcel() {
+	var workbook = new ExcelJS.Workbook();
+	var worksheet = workbook.addWorksheet('<?PHP echo $encuestaNombre; ?>');
+
+	// Añadir una fila usando un arreglo de valores
+	worksheet.columns = [
+		{ header: '#', width: 4 },
+		{ header: 'Rubro', width: 20 },
+		{ header: 'Familia', width: 25 },
+		{ header: 'Artículo', width: 45 }
+		<?PHP echo $paraElExcelEncabezado; ?>
+	];
+	worksheet.getRow(1).eachCell((cell) => {
+		cell.font = { bold: true }; // Negrita
+		cell.alignment = { horizontal: 'center' }; // Centrado
+	});
+
+	// Añadir más filas
+	let cadaRow = Array();
+	let va = true;
+	let val = 0;
+	for (let indiceListadoArticulos in AlistadoArticulos){
+		va = true;
+		if (AarticulosFuera[didArticuloSiNo] !== null){
+			if (AarticulosFuera[didArticuloSiNo]){
+				va = false;
+			}
+		}
+		if (va){
+			cadaRow = Array();
+			didArticulo = AlistadoArticulos[indiceListadoArticulos]['didArticulo'];
+			cadaRow.push(didArticulo);
+			cadaRow.push(AlistadoArticulos[indiceListadoArticulos]['nombreRubro']);
+			cadaRow.push(AlistadoArticulos[indiceListadoArticulos]['nombreFamilia']);
+			cadaRow.push(AlistadoArticulos[indiceListadoArticulos]['nombreArticulo']);
+			for (let indiceListadoMercados in Amercados){
+				val = 0;
+				indiceMontoYa = didArticulo + '-' + indiceListadoMercados + '-1';
+				if (AmontosYa[indiceMontoYa] !== null){
+					val = AmontosYa[indiceMontoYa];
+				}
+				cadaRow.push(val);
+				val = 0;
+				indiceMontoYa = didArticulo + '-' + indiceListadoMercados + '-2';
+				if (AmontosYa[indiceMontoYa] !== null){
+					val = AmontosYa[indiceMontoYa];
+				}
+				cadaRow.push(val);
+			}
+			const row = worksheet.addRow(cadaRow);
+			celda = 4;
+			for (let indiceListadoMercados in Amercados){
+				for (let step = 0; step < 2; step++) {
+					celda++;
+					row.getCell(celda).alignment = { horizontal: 'right' };
+					//row.getCell(celda).numFmt = '0';
+					//row.getCell(celda).dataValidation = {type: 'whole',operator: 'between',showErrorMessage: true,formula1: 0,formula2: 9999999999999999999 // Puedes ajustar el rango según sea necesario};
+				}
+			}
+		}
+	}
+
+	// Guardar el archivo
+	workbook.xlsx.writeBuffer().then(function(buffer) {
+		// Usar Blob para manejar los datos del archivo
+		let blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+		saveAs(blob, "CargaMasivaCAPA.xlsx");
+	});
+}
+
+
+function chequearVersionArchivo(){
+	let rowNumber = 1;
+	for (let indiceListadoArticulos in AlistadoArticulos){
+		va = true;
+		if (AarticulosFuera[didArticuloSiNo] !== null){
+			if (AarticulosFuera[didArticuloSiNo]){
+				va = false;
+			}
+		}
+		if (va){
+			rowNumber++;
+			didArticulo = AlistadoArticulos[indiceListadoArticulos]['didArticulo'];
+			colNumber = 4;
+			for (let indiceListadoMercados in Amercados){
+				for (let step = 0; step < 2; step++) {
+					colNumber++;
+					indiceCelda = rowNumber + '-' + colNumber;
+					dato = celdas[indiceCelda]*1;
+					if (dato > -1){
+						console.log(indiceCelda, dato);
+					}
+				}
+			}
+		}
+	}
+}
+
+var celdas = {};
+function leerArchivoExcel(file) {
+	console.log('leyendo');
+	var reader = new FileReader();
+
+	celdas = {};
+	let indiceCelda = '';
+	reader.onload = function(event) {
+		var arrayBuffer = reader.result;
+		var workbook = new ExcelJS.Workbook();
+		workbook.xlsx.load(arrayBuffer).then(function() {
+			// Procesa el workbook aquí
+			var worksheet = workbook.getWorksheet(1);
+			worksheet.eachRow(function(row, rowNumber) {
+				row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+					//console.log('linea' + rowNumber, 'Column ' + colNumber, cell.value);
+					indiceCelda = rowNumber + '-' + colNumber;
+					celdas[indiceCelda] = cell.value;
+				});
+			});
+		});
+	};
+	
+	reader.readAsArrayBuffer(file);
+	chequearVersionArchivo();
+}
+document.getElementById('drop-area').addEventListener('drop', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer.files.length) {
+		console.log('drop');
+        var file = event.dataTransfer.files[0];
+        leerArchivoExcel(file);
+    }
+}, false);
+
+document.getElementById('drop-area').addEventListener('dragover', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+}, false);
+</script>
