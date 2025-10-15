@@ -145,7 +145,7 @@ if (!is_dir($logDir)) {
 // ============================================
 // CONSTANTES ADICIONALES
 // ============================================
-define('SITE_URL', 'https://estadistica-capa.org.ar/encuestas');
+define('SITE_URL', 'https://estadistica-capa.org.ar');
 define('BASE_PATH', __DIR__);
 
 // Log de configuración cargada (solo en desarrollo)
