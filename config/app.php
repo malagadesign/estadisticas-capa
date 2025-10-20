@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
 // Cargar .env del directorio raíz
-$rootEnv = __DIR__ . '/../../.env';
+$rootEnv = __DIR__ . '/../.env';
 if (file_exists($rootEnv)) {
     $lines = file($rootEnv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -51,11 +51,11 @@ define('DB_PORT', env('DB_PORT', '3306'));
 
 define('APP_NAME', 'CAPA Encuestas');
 define('APP_VERSION', '2.0');
-define('APP_URL', env('APP_URL', 'http://localhost:8888/capa/encuestas/v2'));
+define('APP_URL', env('APP_URL', 'https://estadistica-capa.org.ar'));
 define('ASSETS_URL', APP_URL . '/public/assets');
 
 // Paths
-define('ROOT_PATH', dirname(__DIR__));
+define('ROOT_PATH', __DIR__);
 define('PUBLIC_PATH', ROOT_PATH . '/public');
 define('STORAGE_PATH', ROOT_PATH . '/storage');
 
