@@ -1,0 +1,117 @@
+/*
+ * CSS RESPONSIVO SIMPLE - CAPA Encuestas
+ * Enfoque minimalista - No romper Bootstrap Tabs
+ */
+
+/* ============================================
+   MOBILE PEQUEÑO (< 480px)
+   ============================================ */
+@media (max-width: 480px) {
+    /* Reducir padding general */
+    body {
+        font-size: 14px;
+    }
+    
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    /* Botones más grandes para táctil */
+    .btn {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    /* Inputs más grandes */
+    .form-control,
+    input[type="text"],
+    input[type="password"],
+    select {
+        min-height: 44px;
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    /* Tablas en modo card */
+    .table thead {
+        display: none;
+    }
+    
+    .table tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        background: #fff;
+    }
+    
+    .table tbody td {
+        display: block;
+        text-align: right;
+        padding: 8px;
+        border: none;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .table tbody td:before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        color: #001A4D;
+    }
+    
+    .table tbody td:last-child {
+        border-bottom: none;
+    }
+}
+
+/* ============================================
+   TABLET Y MOBILE GRANDE (< 768px)
+   ============================================ */
+@media (max-width: 768px) {
+    /* Scroll horizontal en tablas si necesario */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Menú de tabs - permitir scroll horizontal */
+    .notika-main-menu-dropdown {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+    
+    .notika-main-menu-dropdown > li {
+        display: inline-block;
+    }
+    
+    /* Imágenes responsivas */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
+/* Ocultar en mobile */
+@media (max-width: 768px) {
+    .hidden-mobile {
+        display: none !important;
+    }
+}
+
+/* Mostrar solo en mobile */
+.visible-mobile {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .visible-mobile {
+        display: block !important;
+    }
+}

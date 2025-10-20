@@ -1,0 +1,33 @@
+# ============================================
+# ARCHIVO DE CONFIGURACIÓN PARA PRODUCCIÓN
+# ============================================
+# 
+# IMPORTANTE: Este archivo debe crearse en el servidor
+# con las credenciales reales de DonWeb
+# ============================================
+
+# BASE DE DATOS (configurar con datos de DonWeb)
+DB_HOST=localhost
+DB_USER=encuesta_capa
+DB_PASSWORD=Malaga77
+DB_NAME=encuesta_capa
+
+# CONFIGURACIÓN DE EMAIL SMTP
+MAIL_HOST=smtp.office365.com
+MAIL_PORT=587
+MAIL_USER=estadisticas@estadistica-capa.org.ar
+MAIL_PASSWORD=7KGItd@0nQ
+MAIL_FROM_NAME=CAPA Estadísticas
+MAIL_REPLY_TO=capa@capa.org.ar
+
+# CONFIGURACIÓN DE SEGURIDAD
+# Cambiar a 0 en producción
+DISPLAY_ERRORS=0
+# Cambiar a 1 si se usa HTTPS (recomendado)
+SESSION_COOKIE_SECURE=1
+
+# CONFIGURACIÓN DE EMAIL ADMINISTRATIVO
+ADMIN_EMAIL=capa@capa.org.ar
+
+# ENTORNO (production para servidor)
+ENVIRONMENT=production

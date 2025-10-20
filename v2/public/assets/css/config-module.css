@@ -1,0 +1,200 @@
+/**
+ * CAPA Encuestas - Estilos para Módulo de Configuración
+ * Rubros, Familias, Artículos, Mercados, Encuestas
+ */
+
+/* Botones con gradiente CAPA */
+.btn-capa-purpura {
+    background: linear-gradient(135deg, #9D4EDD, #C084FC);
+    border: none;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-capa-purpura:hover {
+    background: linear-gradient(135deg, #7B2CBF, #9D4EDD);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(157, 78, 221, 0.4);
+}
+
+.btn-outline-capa-purpura {
+    border: 2px solid #9D4EDD;
+    color: #9D4EDD;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-capa-purpura:hover {
+    background: #9D4EDD;
+    border-color: #9D4EDD;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Tabla con header CAPA */
+.table-capa {
+    background: linear-gradient(135deg, #001A4D, #003875);
+    color: white;
+}
+
+.table-capa th {
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+/* Badges personalizados */
+.bg-capa-azul-oscuro {
+    background-color: #001A4D !important;
+    color: white;
+}
+
+.text-capa-purpura {
+    color: #9D4EDD !important;
+}
+
+.bg-capa-purpura {
+    background: linear-gradient(135deg, #9D4EDD, #C084FC) !important;
+    color: white !important;
+}
+
+/* Cards con sombra */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 24px rgba(0, 26, 77, 0.15) !important;
+}
+
+/* Hover en filas de tabla */
+.table-hover tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(157, 78, 221, 0.05);
+    transform: translateX(5px);
+}
+
+/* Modal personalizado */
+.modal-header.bg-capa-purpura {
+    background: linear-gradient(135deg, #9D4EDD, #C084FC) !important;
+    border-bottom: none;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+    border-color: #9D4EDD;
+    box-shadow: 0 0 0 0.25rem rgba(157, 78, 221, 0.15);
+}
+
+.form-check-input:checked {
+    background-color: #9D4EDD;
+    border-color: #9D4EDD;
+}
+
+.form-check-input:focus {
+    border-color: #C084FC;
+    box-shadow: 0 0 0 0.25rem rgba(157, 78, 221, 0.15);
+}
+
+/* Badges de estado */
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+}
+
+/* Animación de entrada para modales */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal.show .modal-dialog {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: 0.5rem;
+    }
+    
+    .btn-capa-purpura {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+
+/* Loading state para botones */
+.btn .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15rem;
+}
+
+/* Empty state */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-center.text-muted .fa-inbox {
+    color: #dee2e6;
+}
+
+/* Iconos con color CAPA */
+.text-capa-purpura i {
+    filter: drop-shadow(0 2px 4px rgba(157, 78, 221, 0.2));
+}
+
+/* Select mejorado */
+.form-select {
+    cursor: pointer;
+}
+
+.form-select option {
+    padding: 0.5rem;
+}
+
+/* Tooltips */
+[title] {
+    cursor: help;
+}
+
+/* Success/Error states */
+.was-validated .form-control:valid {
+    border-color: #198754;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+

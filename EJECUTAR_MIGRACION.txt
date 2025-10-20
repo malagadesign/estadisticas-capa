@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA EJECUTAR LA MIGRACIÓN DE CONTRASEÑAS
+═══════════════════════════════════════════════════════════════════════════════
+
+IMPORTANTE: Este proceso convertirá todas las contraseñas de texto plano a
+bcrypt (hashing seguro). Solo debe ejecutarse UNA VEZ.
+
+PASOS:
+
+1. Abre tu navegador
+
+2. Ve a la siguiente URL:
+   http://localhost:8888/capa/encuestas/migrar_passwords.php?ejecutar_migracion_passwords=SI_ESTOY_SEGURO
+
+3. Deberías ver un resultado similar a:
+   ===========================================
+   MIGRACIÓN DE CONTRASEÑAS A BCRYPT
+   ===========================================
+   
+   Agregando columna 'password_hash' a la tabla usuarios...
+   ✓ Columna agregada
+   
+   Usuarios a migrar: 296
+   Iniciando migración...
+   
+   ✓ Migrado: 'Coordinación' (ID: 6, Tipo: adm)
+   ✓ Migrado: 'liit' (ID: 8, Tipo: adm)
+   ... [más usuarios] ...
+
+4. Una vez completado, ANOTA el número de usuarios migrados
+
+5. NO ejecutes este script nuevamente
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DESPUÉS DE LA MIGRACIÓN:
+
+- Las contraseñas estarán hasheadas de forma segura
+- El sistema seguirá funcionando normalmente
+- Los usuarios podrán hacer login con las mismas contraseñas
+- La diferencia es que ahora las contraseñas están protegidas
+
+═══════════════════════════════════════════════════════════════════════════════

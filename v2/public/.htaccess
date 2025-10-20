@@ -1,0 +1,71 @@
+# =======================
+# CAPA Encuestas v2
+# Routing y Seguridad
+# =======================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirigir todo al index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# =======================
+# Headers de Seguridad
+# =======================
+
+<IfModule mod_headers.c>
+    # Evitar clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # XSS Protection
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Content Type Sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Cache Control para recursos estáticos
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=31536000"
+    </FilesMatch>
+    
+    # No cachear PHP
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# =======================
+# Seguridad de Archivos
+# =======================
+
+# Denegar acceso a archivos sensibles
+<FilesMatch "(\.env|\.htaccess|\.git|composer\.(json|lock))$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# =======================
+# Compresi\u00f3n GZIP
+# =======================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# =======================
+# PHP Settings
+# =======================
+# NOTA: Estas directivas no funcionan con PHP-FPM/FastCGI en MAMP
+# Configurar en php.ini si es necesario
+
+# php_value upload_max_filesize 10M
+# php_value post_max_size 10M
+# php_value max_execution_time 60
+

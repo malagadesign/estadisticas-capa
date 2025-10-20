@@ -1,0 +1,30 @@
+# ============================================
+# CONFIGURACIÓN LOCAL MAMP - DESARROLLO
+# ============================================
+
+# BASE DE DATOS LOCAL MAMP
+DB_HOST=localhost
+DB_PORT=8889
+DB_USER=root
+DB_PASSWORD=root
+DB_NAME=mlgcapa_enc
+
+# CONFIGURACIÓN DE EMAIL SMTP (Para desarrollo local)
+MAIL_HOST=smtp.office365.com
+MAIL_PORT=587
+MAIL_USER=estadisticas@capa.org.ar
+MAIL_PASSWORD=TEMPORAL_DESARROLLO
+MAIL_FROM_NAME=CAPA
+MAIL_REPLY_TO=capa@capa.org.ar
+
+# CONFIGURACIÓN DE SEGURIDAD
+# En desarrollo local usa 1 para ver errores
+DISPLAY_ERRORS=1
+# En localhost sin HTTPS, usa 0
+SESSION_COOKIE_SECURE=0
+
+# CONFIGURACIÓN DE EMAIL ADMINISTRATIVO
+ADMIN_EMAIL=capa@capa.org.ar
+
+# ENTORNO (development para local)
+ENVIRONMENT=development

@@ -1,0 +1,23 @@
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires 0
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set Cache-Control "must-revalidate"
+</IfModule>
+
+<IfModule mod_headers.c>
+  FileETag None
+</IfModule>
+
+<FilesMatch "\.(html|htm|php)$">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires 0
+</FilesMatch>
+
+<FilesMatch "\.(js|css|jpg|jpeg|png|gif|webp)$">
+  Header set Cache-Control "max-age=604800, public"
+</FilesMatch>

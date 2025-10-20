@@ -1,0 +1,212 @@
+/*
+ * ESTILOS PERSONALIZADOS CAPA
+ * Paleta de colores oficial de CAPA
+ * Azul marino: #001A4D (principal)
+ * Violeta: #9D4EDD (acentos)
+ * Lila: #C084FC (hover)
+ */
+
+/* ============================================
+   BOTONES PRINCIPALES - Azul marino CAPA
+   ============================================ */
+
+/* Botón "Ingresar" y botones success */
+.btn-success,
+.btn.btn-success,
+.notika-btn-success,
+button[type="submit"],
+input[type="submit"].btn-success {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+    color: #ffffff !important;
+}
+
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active,
+.notika-btn-success:hover,
+.notika-btn-success:focus,
+.notika-btn-success:active {
+    background-color: #002B6B !important;
+    border-color: #002B6B !important;
+    color: #ffffff !important;
+}
+
+/* Botón "Crear nueva familia" y botones info */
+.btn-info,
+.btn.btn-info,
+.notika-btn-info,
+.btn-modal,
+button.btn-info {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+    color: #ffffff !important;
+}
+
+.btn-info:hover,
+.btn-info:focus,
+.btn-info:active,
+.notika-btn-info:hover,
+.notika-btn-info:focus,
+.notika-btn-info:active {
+    background-color: #002B6B !important;
+    border-color: #002B6B !important;
+    color: #ffffff !important;
+}
+
+/* Botones primarios */
+.btn-primary,
+.btn.btn-primary,
+.notika-btn-primary {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #002B6B !important;
+    border-color: #002B6B !important;
+    color: #ffffff !important;
+}
+
+/* ============================================
+   TABS Y NAVEGACIÓN - Violeta CAPA activo
+   ============================================ */
+
+/* Tabs activos */
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+    color: #9D4EDD !important;
+    border-bottom-color: #9D4EDD !important;
+    font-weight: 600;
+}
+
+/* Tab links hover */
+.nav-tabs > li > a:hover {
+    color: #9D4EDD !important;
+    border-bottom-color: #9D4EDD !important;
+}
+
+/* ============================================
+   ELEMENTOS INTERACTIVOS
+   ============================================ */
+
+/* Links de acción con fondo azul marino */
+a.btn-success,
+a.btn-info,
+a.btn-primary {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+a.btn-success:hover,
+a.btn-info:hover,
+a.btn-primary:hover {
+    background-color: #002B6B !important;
+    color: #ffffff !important;
+}
+
+/* ============================================
+   LOGIN ESPECÍFICO
+   ============================================ */
+
+/* Botón de login */
+.btn-login,
+.btn-login.btn-success {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+    color: #ffffff !important;
+}
+
+.btn-login:hover,
+.btn-login:focus,
+.btn-login:active {
+    background-color: #002B6B !important;
+    border-color: #002B6B !important;
+    color: #ffffff !important;
+}
+
+/* ============================================
+   BADGES Y NOTIFICACIONES
+   ============================================ */
+
+.badge-success,
+.label-success {
+    background-color: #9D4EDD !important;
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+
+.progress-bar-success {
+    background-color: #9D4EDD !important;
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+
+.alert-success {
+    background-color: rgba(157, 78, 221, 0.1) !important;
+    border-color: #9D4EDD !important;
+    color: #001A4D !important;
+}
+
+/* ============================================
+   FORMS - Estados activos
+   ============================================ */
+
+.form-control:focus {
+    border-color: #9D4EDD !important;
+    box-shadow: 0 0 0 0.2rem rgba(157, 78, 221, 0.25) !important;
+}
+
+/* ============================================
+   PAGINACIÓN
+   ============================================ */
+
+.pagination > .active > a,
+.pagination > .active > span {
+    background-color: #001A4D !important;
+    border-color: #001A4D !important;
+}
+
+.pagination > li > a:hover {
+    color: #9D4EDD !important;
+    border-color: #9D4EDD !important;
+}
+
+/* ============================================
+   DROPDOWNS
+   ============================================ */
+
+.dropdown-menu > .active > a {
+    background-color: #001A4D !important;
+    color: #ffffff !important;
+}
+
+.dropdown-menu > li > a:hover {
+    background-color: rgba(157, 78, 221, 0.1) !important;
+    color: #001A4D !important;
+}
+
+/* ============================================
+   SWITCHES Y CHECKBOXES
+   ============================================ */
+
+.nk-toggle-switch input:checked + .ts-helper {
+    background-color: #9D4EDD !important;
+}
+
+/* Checkbox checked */
+input[type="checkbox"]:checked {
+    background-color: #9D4EDD !important;
+    border-color: #9D4EDD !important;
+}
+

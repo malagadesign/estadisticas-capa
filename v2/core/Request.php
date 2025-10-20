@@ -1,0 +1,108 @@
+<?php
+/**
+ * Request - Manejo de peticiones HTTP
+ */
+class Request {
+    /**
+     * Obtener método HTTP
+     */
+    public static function method() {
+        return $_SERVER['REQUEST_METHOD'];
+    }
+    
+    /**
+     * Obtener URL actual
+     */
+    public static function url() {
+        return $_SERVER['REQUEST_URI'];
+    }
+    
+    /**
+     * Verificar si es POST
+     */
+    public static function isPost() {
+        return self::method() === 'POST';
+    }
+    
+    /**
+     * Verificar si es GET
+     */
+    public static function isGet() {
+        return self::method() === 'GET';
+    }
+    
+    /**
+     * Verificar si es AJAX
+     */
+    public static function isAjax() {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+    
+    /**
+     * Obtener parámetro POST
+     */
+    public static function post($key, $default = null) {
+        return $_POST[$key] ?? $default;
+    }
+    
+    /**
+     * Obtener parámetro GET
+     */
+    public static function get($key, $default = null) {
+        return $_GET[$key] ?? $default;
+    }
+    
+    /**
+     * Obtener todos los POST
+     */
+    public static function postAll() {
+        return $_POST;
+    }
+    
+    /**
+     * Obtener todos los GET
+     */
+    public static function getAll() {
+        return $_GET;
+    }
+    
+    /**
+     * Obtener archivo subido
+     */
+    public static function file($key) {
+        return $_FILES[$key] ?? null;
+    }
+    
+    /**
+     * Limpiar input (básico)
+     */
+    public static function clean($value) {
+        if (is_array($value)) {
+            return array_map([self::class, 'clean'], $value);
+        }
+        
+        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
+    
+    /**
+     * Obtener IP del cliente
+     */
+    public static function ip() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'];
+        }
+    }
+    
+    /**
+     * Obtener user agent
+     */
+    public static function userAgent() {
+        return $_SERVER['HTTP_USER_AGENT'] ?? '';
+    }
+}
+
