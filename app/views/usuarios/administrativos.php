@@ -123,7 +123,7 @@
                         <input type="password" class="form-control" id="password" name="password" 
                                placeholder="Mínimo 6 caracteres" minlength="6">
                         <small class="text-muted" id="textoPassword">
-                            Dejar en blanco para mantener la contraseña actual
+                            Dejar en blanco para generar una contraseña automática
                         </small>
                     </div>
                     

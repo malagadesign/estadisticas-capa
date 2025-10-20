@@ -537,10 +537,22 @@ class ConfigController {
         
         try {
             $db = Database::getInstance();
+            
+            // Convertir fechas de dd/mm/yyyy a yyyy-mm-dd
+            $desdeFormato = DateTime::createFromFormat('d/m/Y', $desde);
+            $hastaFormato = DateTime::createFromFormat('d/m/Y', $hasta);
+            
+            if (!$desdeFormato || !$hastaFormato) {
+                View::json(['success' => false, 'message' => 'Formato de fecha inválido. Use dd/mm/yyyy'], 400);
+            }
+            
+            $desdeDB = $desdeFormato->format('Y-m-d');
+            $hastaDB = $hastaFormato->format('Y-m-d');
+            
             $db->insert(
-                "INSERT INTO encuestas (nombre, desdeText, hastaText, habilitado, superado, elim) 
-                 VALUES (?, ?, ?, ?, 0, 0)",
-                ['sssi', $nombre, $desde, $hasta, $habilitado]
+                "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim) 
+                 VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
+                ['sssssi', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta creada correctamente']);
@@ -570,9 +582,21 @@ class ConfigController {
         
         try {
             $db = Database::getInstance();
+            
+            // Convertir fechas de dd/mm/yyyy a yyyy-mm-dd
+            $desdeFormato = DateTime::createFromFormat('d/m/Y', $desde);
+            $hastaFormato = DateTime::createFromFormat('d/m/Y', $hasta);
+            
+            if (!$desdeFormato || !$hastaFormato) {
+                View::json(['success' => false, 'message' => 'Formato de fecha inválido. Use dd/mm/yyyy'], 400);
+            }
+            
+            $desdeDB = $desdeFormato->format('Y-m-d');
+            $hastaDB = $hastaFormato->format('Y-m-d');
+            
             $db->query(
-                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, habilitado = ? WHERE did = ?",
-                ['sssii', $nombre, $desde, $hasta, $habilitado, $did]
+                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE did = ?",
+                ['sssssii', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado, $did]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta actualizada correctamente']);

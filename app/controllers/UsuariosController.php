@@ -84,8 +84,13 @@ class UsuariosController {
         $habilitado = Request::post('habilitado', 1);
         
         // Validaciones
-        if (empty($usuario) || empty($mail) || empty($password)) {
-            View::json(['success' => false, 'message' => 'Todos los campos son requeridos'], 400);
+        if (empty($usuario) || empty($mail)) {
+            View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
+        }
+        
+        // Contraseña opcional - si no se proporciona, generar una automática
+        if (empty($password)) {
+            $password = 'temp_' . uniqid(); // Contraseña temporal
         }
         
         if (!in_array($tipo, ['adm', 'socio'])) {
