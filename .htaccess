@@ -1,6 +1,6 @@
 # ============================================
 # CONFIGURACIÓN DE SEGURIDAD - Sistema CAPA
-# Actualizado: 8 de Octubre, 2025
+# Versión simplificada para DonWeb
 # ============================================
 
 # Habilitar RewriteEngine
@@ -10,41 +10,6 @@
     # Forzar HTTPS
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-    
-    # Prevenir acceso directo a archivos de configuración
-    RewriteRule ^\.env$ - [F,L]
-    RewriteRule ^config\.php$ - [F,L]
-    RewriteRule ^csrf\.php$ - [F,L]
-</IfModule>
-
-# ============================================
-# HEADERS DE SEGURIDAD
-# ============================================
-
-<IfModule mod_headers.c>
-    # Prevenir clickjacking
-    Header always set X-Frame-Options "DENY"
-    
-    # Prevenir MIME type sniffing
-    Header always set X-Content-Type-Options "nosniff"
-    
-    # Habilitar filtro XSS del navegador
-    Header always set X-XSS-Protection "1; mode=block"
-    
-    # Política de referrer
-    Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # Content Security Policy
-    # Nota: Ajustar según necesidades de la aplicación
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self';"
-    
-    # HTTP Strict Transport Security (HSTS)
-    # Solo descomentar si HTTPS está completamente configurado
-    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-    
-    # Ocultar información del servidor
-    Header unset Server
-    Header unset X-Powered-By
 </IfModule>
 
 # ============================================
@@ -58,24 +23,13 @@
 </FilesMatch>
 
 # Denegar acceso a archivos de configuración
-<FilesMatch "^(config|csrf|conector|conector_viejo)\.php$">
+<FilesMatch "^(config|csrf|conector)\.php$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
 # Denegar acceso a archivos de backup
-<FilesMatch "^z\$.*\.php$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
 <FilesMatch "\.(bak|old|backup|swp|~)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Denegar acceso a archivos de Git
-<FilesMatch "^\.git">
     Order allow,deny
     Deny from all
 </FilesMatch>
@@ -87,73 +41,27 @@
 </FilesMatch>
 
 # ============================================
-# PROTECCIÓN DE DIRECTORIOS
-# ============================================
-
-# Proteger directorio de logs
-# NOTA: DirectoryMatch no está disponible en .htaccess
-# Comentado temporalmente - mover a httpd.conf si es necesario
-#<DirectoryMatch "^.*/logs/">
-#    Order deny,allow
-#    Deny from all
-#</DirectoryMatch>
-
-# Proteger ejemplos y tests de PHPMailer
-#<DirectoryMatch "(examples|test)">
-#    Order deny,allow
-#    Deny from all
-#</DirectoryMatch>
-
-# ============================================
 # PREVENIR LISTADO DE DIRECTORIOS
 # ============================================
 Options -Indexes
 
 # ============================================
-# PROTECCIÓN CONTRA INYECCIÓN DE CÓDIGO
+# HEADERS DE SEGURIDAD BÁSICOS
 # ============================================
 
-# Bloquear acceso a archivos PHP ejecutables sospechosos
-<FilesMatch "\.(phtml|php3|php4|php5|phps|cgi)$">
-    Order Deny,Allow
-    Deny from all
-    # Permitir solo desde el propio servidor
-    Allow from 127.0.0.1
-</FilesMatch>
-
-# Permitir archivos .php legítimos
-<FilesMatch "\.php$">
-    Order Allow,Deny
-    Allow from all
-</FilesMatch>
-
-# ============================================
-# LÍMITES Y TIMEOUTS
-# ============================================
-
-# Límite de tamaño de solicitud (10MB)
-<IfModule mod_security.c>
-    SecRequestBodyLimit 10485760
-</IfModule>
-
-# Timeout para scripts PHP (si es necesario aumentar)
-# php_value max_execution_time 300
-# php_value max_input_time 300
-
-# ============================================
-# PROTECCIÓN CONTRA HOTLINKING
-# ============================================
-
-<IfModule mod_rewrite.c>
-    RewriteEngine on
-    # Prevenir hotlinking de imágenes (excepto desde el propio sitio)
-    RewriteCond %{HTTP_REFERER} !^$
-    RewriteCond %{HTTP_REFERER} !^https?://(www\.)?capa\.org\.ar [NC]
-    RewriteRule \.(jpg|jpeg|png|gif|svg|pdf)$ - [F,NC]
+<IfModule mod_headers.c>
+    # Prevenir clickjacking
+    Header always set X-Frame-Options "DENY"
+    
+    # Prevenir MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Habilitar filtro XSS del navegador
+    Header always set X-XSS-Protection "1; mode=block"
 </IfModule>
 
 # ============================================
-# COMPRESIÓN (Opcional, para mejorar rendimiento)
+# COMPRESIÓN (Opcional)
 # ============================================
 
 <IfModule mod_deflate.c>
@@ -164,54 +72,6 @@ Options -Indexes
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/json
 </IfModule>
-
-# ============================================
-# CACHE (Opcional, para mejorar rendimiento)
-# ============================================
-
-<IfModule mod_expires.c>
-    ExpiresActive On
-    
-    # Imágenes
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/gif "access plus 1 month"
-    ExpiresByType image/svg+xml "access plus 1 month"
-    
-    # CSS y JavaScript
-    ExpiresByType text/css "access plus 1 week"
-    ExpiresByType application/javascript "access plus 1 week"
-    
-    # Fuentes
-    ExpiresByType font/woff "access plus 1 month"
-    ExpiresByType font/woff2 "access plus 1 month"
-    
-    # HTML no se cachea
-    ExpiresByType text/html "access plus 0 seconds"
-</IfModule>
-
-# ============================================
-# CONFIGURACIÓN DE PHP (si está permitido)
-# ============================================
-
-<IfModule mod_php7.c>
-    # Ocultar versión de PHP
-    php_flag display_errors Off
-    php_flag expose_php Off
-    
-    # Deshabilitar funciones peligrosas
-    # php_value disable_functions "exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source"
-</IfModule>
-
-# ============================================
-# PÁGINAS DE ERROR PERSONALIZADAS
-# ============================================
-
-ErrorDocument 400 /error.php?error=400
-ErrorDocument 401 /error.php?error=401
-ErrorDocument 403 /error.php?error=403
-ErrorDocument 404 /error.php?error=404
-ErrorDocument 500 /error.php?error=500
 
 # ============================================
 # FIN DE CONFIGURACIÓN
