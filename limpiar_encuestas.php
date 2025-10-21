@@ -95,6 +95,39 @@ try {
     
     echo "</table>";
     
+    // Eliminar encuestas con ID 0 (duplicadas/problemáticas)
+    echo "<h2>Eliminando encuestas con ID 0 (duplicadas):</h2>";
+    
+    $encuestas_id_0 = $db->fetchAll(
+        "SELECT did, nombre, desde, hasta 
+         FROM encuestas 
+         WHERE did = 0 AND superado = 0 AND elim = 0"
+    );
+    
+    if (empty($encuestas_id_0)) {
+        echo "<p>✅ No se encontraron encuestas con ID 0.</p>";
+    } else {
+        echo "<p>Se encontraron " . count($encuestas_id_0) . " encuestas con ID 0:</p>";
+        echo "<ul>";
+        
+        foreach ($encuestas_id_0 as $enc) {
+            echo "<li>ID: " . $enc['did'] . " - " . htmlspecialchars($enc['nombre']) . " (" . $enc['desde'] . " - " . $enc['hasta'] . ")</li>";
+        }
+        
+        echo "</ul>";
+        
+        // Eliminar las encuestas con ID 0
+        $resultado = $db->query(
+            "UPDATE encuestas SET elim = 1 WHERE did = 0 AND superado = 0 AND elim = 0"
+        );
+        
+        if ($resultado) {
+            echo "<p style='color: green;'>✅ Se eliminaron " . count($encuestas_id_0) . " encuestas con ID 0.</p>";
+        } else {
+            echo "<p style='color: red;'>❌ Error al eliminar encuestas con ID 0.</p>";
+        }
+    }
+    
     echo "<h2>✅ Limpieza completada</h2>";
     
 } catch (Exception $e) {
