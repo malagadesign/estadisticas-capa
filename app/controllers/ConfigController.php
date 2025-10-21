@@ -549,16 +549,21 @@ class ConfigController {
             $desdeDB = $desdeFormato->format('Y-m-d');
             $hastaDB = $hastaFormato->format('Y-m-d');
             
+            // Validar que la fecha desde no sea mayor que hasta
+            if ($desdeFormato > $hastaFormato) {
+                View::json(['success' => false, 'message' => 'La fecha de inicio no puede ser mayor que la fecha de fin'], 400);
+            }
+            
             $db->insert(
-                "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim) 
-                 VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                ['sssssi', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado]
+                "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
+                ['sssssii', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado, Session::get('user_id', 0)]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta creada correctamente']);
         } catch (Exception $e) {
             error_log("Error creando encuesta: " . $e->getMessage());
-            View::json(['success' => false, 'message' => 'Error al crear encuesta'], 500);
+            View::json(['success' => false, 'message' => 'Error al crear encuesta: ' . $e->getMessage()], 500);
         }
     }
     
@@ -594,6 +599,11 @@ class ConfigController {
             $desdeDB = $desdeFormato->format('Y-m-d');
             $hastaDB = $hastaFormato->format('Y-m-d');
             
+            // Validar que la fecha desde no sea mayor que hasta
+            if ($desdeFormato > $hastaFormato) {
+                View::json(['success' => false, 'message' => 'La fecha de inicio no puede ser mayor que la fecha de fin'], 400);
+            }
+            
             $db->query(
                 "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE did = ?",
                 ['sssssii', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado, $did]
@@ -602,7 +612,7 @@ class ConfigController {
             View::json(['success' => true, 'message' => 'Encuesta actualizada correctamente']);
         } catch (Exception $e) {
             error_log("Error actualizando encuesta: " . $e->getMessage());
-            View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
+            View::json(['success' => false, 'message' => 'Error al actualizar: ' . $e->getMessage()], 500);
         }
     }
     

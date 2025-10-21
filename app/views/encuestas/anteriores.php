@@ -40,10 +40,26 @@
                                     <?php foreach ($encuestas as $enc): ?>
                                         <?php
                                         $fecha_actual = strtotime(date('Y-m-d'));
-                                        $fecha_hasta = strtotime($enc['hasta']);
-                                        $activa = ($fecha_hasta >= $fecha_actual && $enc['habilitado'] == 1);
+                                        
+                                        // Verificar si las fechas son válidas
+                                        $fecha_desde_valida = !empty($enc['desde']) && $enc['desde'] !== '0000-00-00';
+                                        $fecha_hasta_valida = !empty($enc['hasta']) && $enc['hasta'] !== '0000-00-00';
+                                        
+                                        if ($fecha_hasta_valida) {
+                                            $fecha_hasta = strtotime($enc['hasta']);
+                                            $activa = ($fecha_hasta >= $fecha_actual && $enc['habilitado'] == 1);
+                                        } else {
+                                            $activa = false; // Si no hay fecha válida, no está activa
+                                        }
+                                        
                                         $badge = $activa ? 'success' : 'secondary';
                                         $estadoTexto = $activa ? 'Activa' : 'Finalizada';
+                                        
+                                        // Si no hay fechas válidas, mostrar como "Sin fechas"
+                                        if (!$fecha_desde_valida || !$fecha_hasta_valida) {
+                                            $estadoTexto = 'Sin fechas';
+                                            $badge = 'warning';
+                                        }
                                         ?>
                                         <tr>
                                             <td><?= e($enc['did']) ?></td>
@@ -77,8 +93,25 @@
                             <?php foreach ($encuestas as $enc): ?>
                                 <?php
                                 $fecha_actual = strtotime(date('Y-m-d'));
-                                $fecha_hasta = strtotime($enc['hasta']);
-                                $activa = ($fecha_hasta >= $fecha_actual && $enc['habilitado'] == 1);
+                                
+                                // Verificar si las fechas son válidas
+                                $fecha_desde_valida = !empty($enc['desde']) && $enc['desde'] !== '0000-00-00';
+                                $fecha_hasta_valida = !empty($enc['hasta']) && $enc['hasta'] !== '0000-00-00';
+                                
+                                if ($fecha_hasta_valida) {
+                                    $fecha_hasta = strtotime($enc['hasta']);
+                                    $activa = ($fecha_hasta >= $fecha_actual && $enc['habilitado'] == 1);
+                                } else {
+                                    $activa = false;
+                                }
+                                
+                                $badge = $activa ? 'success' : 'secondary';
+                                $estadoTexto = $activa ? 'Activa' : 'Finalizada';
+                                
+                                if (!$fecha_desde_valida || !$fecha_hasta_valida) {
+                                    $estadoTexto = 'Sin fechas';
+                                    $badge = 'warning';
+                                }
                                 ?>
                                 <div class="card mb-3">
                                     <div class="card-body">

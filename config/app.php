@@ -95,8 +95,15 @@ function csrf_field() {
 
 // Helper para formatear fechas
 function fecha_format($fecha, $formato = 'd/m/Y') {
-    if (empty($fecha)) return '';
+    if (empty($fecha) || $fecha === '0000-00-00' || $fecha === '0000-00-00 00:00:00') {
+        return 'Sin fecha';
+    }
+    
     $timestamp = strtotime($fecha);
+    if ($timestamp === false) {
+        return 'Fecha inválida';
+    }
+    
     return date($formato, $timestamp);
 }
 
