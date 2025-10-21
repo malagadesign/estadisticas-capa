@@ -287,7 +287,7 @@ async function guardarEncuesta() {
     }
     
     const did = formData.get('did');
-    const url = did ? '<?= route('/config/encuestas/update') ?>' : '<?= route('/config/encuestas/create') ?>';
+    const url = (did && did !== '0') ? '<?= route('/config/encuestas/update') ?>' : '<?= route('/config/encuestas/create') ?>';
     
     // Preparar datos para envío
     const data = {
