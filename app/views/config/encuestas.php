@@ -100,12 +100,7 @@
                                 <label for="encuesta_desde" class="form-label">
                                     <i class="fas fa-calendar-alt me-1"></i>Desde <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="encuesta_desde" name="desde" required>
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar"></i>
-                                    </span>
-                                </div>
+                                <input type="date" class="form-control" id="encuesta_desde" name="desde" required>
                                 <small class="text-muted">Fecha de inicio de la encuesta</small>
                             </div>
                         </div>
@@ -114,12 +109,7 @@
                                 <label for="encuesta_hasta" class="form-label">
                                     <i class="fas fa-calendar-alt me-1"></i>Hasta <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="encuesta_hasta" name="hasta" required>
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar"></i>
-                                    </span>
-                                </div>
+                                <input type="date" class="form-control" id="encuesta_hasta" name="hasta" required>
                                 <small class="text-muted">Fecha de finalización de la encuesta</small>
                             </div>
                         </div>
@@ -337,7 +327,13 @@ async function guardarEncuesta() {
 }
 
 async function eliminarEncuesta(did, nombre) {
-    if (!confirm(`¿Está seguro de eliminar la encuesta "${nombre}"?`)) {
+    // Validar que el ID sea válido
+    if (!did || did === '0' || did === 0) {
+        alert('Error: No se puede eliminar una encuesta sin ID válido');
+        return;
+    }
+    
+    if (!confirm(`¿Está seguro de eliminar la encuesta "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
         return;
     }
     
@@ -347,39 +343,25 @@ async function eliminarEncuesta(did, nombre) {
     try {
         const response = await fetch('<?= route('/config/encuestas/delete') ?>', {
             method: 'POST',
+            headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
             body: formData
         });
         
         const result = await response.json();
         
         if (result.success) {
-            alert(result.message);
+            alert('✅ ' + result.message);
             location.reload();
         } else {
-            alert('Error: ' + result.message);
+            alert('❌ Error: ' + result.message);
         }
     } catch (error) {
-        alert('Error de conexión');
-        console.error(error);
+        alert('❌ Error de conexión. Intente nuevamente.');
+        console.error('Error eliminando encuesta:', error);
     }
 }
 
-// Auto-formatear fecha mientras se escribe
-document.addEventListener('DOMContentLoaded', function() {
-    const inputDesde = document.getElementById('encuesta_desde');
-    const inputHasta = document.getElementById('encuesta_hasta');
-    
-    [inputDesde, inputHasta].forEach(input => {
-        input.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.slice(0, 2) + '/' + value.slice(2);
-            }
-            if (value.length >= 5) {
-                value = value.slice(0, 5) + '/' + value.slice(5, 9);
-            }
-            e.target.value = value;
-        });
-    });
-});
+// Los inputs de tipo date no necesitan formateo manual
 </script>
