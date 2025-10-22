@@ -24,6 +24,15 @@ try {
     echo "<p><strong>Encuestas con did = 0:</strong> " . $count_did_zero['count'] . "</p>";
     echo "<p><strong>Total de encuestas activas:</strong> " . $total_encuestas['count'] . "</p>";
     
+    // Verificar claves existentes
+    $keys = $db->fetchAll("SHOW KEYS FROM encuestas");
+    echo "<p><strong>Claves existentes en la tabla:</strong></p>";
+    echo "<ul>";
+    foreach ($keys as $key) {
+        echo "<li>" . $key['Key_name'] . " (" . $key['Column_name'] . ") - " . $key['Index_type'] . "</li>";
+    }
+    echo "</ul>";
+    
     // 2. Eliminar encuestas con did = 0
     if ($count_did_zero['count'] > 0) {
         echo "<h2>🗑️ Eliminando encuestas con did = 0:</h2>";
@@ -74,13 +83,50 @@ try {
         
         echo "<p>Configurando AUTO_INCREMENT con próximo ID: " . $next_id . "</p>";
         
-        $sql = "ALTER TABLE encuestas MODIFY COLUMN did int(11) NOT NULL AUTO_INCREMENT";
-        $result = $db->query($sql);
+        // Primero verificar si hay una clave primaria existente
+        $primary_keys = $db->fetchAll("SHOW KEYS FROM encuestas WHERE Key_name = 'PRIMARY'");
         
-        if ($result) {
-            echo "<p style='color: green;'>✅ Campo did configurado con AUTO_INCREMENT.</p>";
+        if (empty($primary_keys)) {
+            echo "<p>No hay clave primaria definida. Configurando did como PRIMARY KEY...</p>";
             
-            // Establecer el próximo valor
+            // Configurar did como PRIMARY KEY con AUTO_INCREMENT
+            $sql = "ALTER TABLE encuestas MODIFY COLUMN did int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY";
+            $result = $db->query($sql);
+            
+            if ($result) {
+                echo "<p style='color: green;'>✅ Campo did configurado como PRIMARY KEY con AUTO_INCREMENT.</p>";
+            } else {
+                echo "<p style='color: red;'>❌ Error al configurar did como PRIMARY KEY.</p>";
+                echo "<p>Intentando como UNIQUE KEY...</p>";
+                
+                // Intentar como UNIQUE KEY
+                $sql_unique = "ALTER TABLE encuestas MODIFY COLUMN did int(11) NOT NULL AUTO_INCREMENT, ADD UNIQUE KEY unique_did (did)";
+                $result_unique = $db->query($sql_unique);
+                
+                if ($result_unique) {
+                    echo "<p style='color: green;'>✅ Campo did configurado como UNIQUE KEY con AUTO_INCREMENT.</p>";
+                } else {
+                    echo "<p style='color: red;'>❌ Error al configurar did como UNIQUE KEY.</p>";
+                    echo "<p><strong>Nota:</strong> Es posible que ya exista una clave primaria en otro campo. Revisa la estructura de la tabla.</p>";
+                }
+            }
+        } else {
+            echo "<p>Ya existe una clave primaria. Configurando did como UNIQUE KEY...</p>";
+            
+            // Configurar did como UNIQUE KEY con AUTO_INCREMENT
+            $sql = "ALTER TABLE encuestas MODIFY COLUMN did int(11) NOT NULL AUTO_INCREMENT, ADD UNIQUE KEY unique_did (did)";
+            $result = $db->query($sql);
+            
+            if ($result) {
+                echo "<p style='color: green;'>✅ Campo did configurado como UNIQUE KEY con AUTO_INCREMENT.</p>";
+            } else {
+                echo "<p style='color: red;'>❌ Error al configurar did como UNIQUE KEY.</p>";
+                echo "<p><strong>Posible causa:</strong> Ya existe un índice único en el campo did o hay valores duplicados.</p>";
+            }
+        }
+        
+        // Establecer el próximo valor (solo si se configuró correctamente)
+        if ($result) {
             $sql_next = "ALTER TABLE encuestas AUTO_INCREMENT = " . $next_id;
             $result_next = $db->query($sql_next);
             
@@ -89,8 +135,6 @@ try {
             } else {
                 echo "<p style='color: orange;'>⚠️ AUTO_INCREMENT configurado, pero no se pudo establecer el próximo ID.</p>";
             }
-        } else {
-            echo "<p style='color: red;'>❌ Error al configurar AUTO_INCREMENT en el campo did.</p>";
         }
     } else {
         echo "<p style='color: green;'>✅ El campo did ya tiene AUTO_INCREMENT configurado.</p>";
