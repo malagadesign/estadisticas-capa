@@ -143,6 +143,8 @@ function mostrarMensajeEncuesta(mensaje, tipo = 'info') {
     
     if (!mensajeDiv || !mensajeTexto) {
         console.warn('Elementos de mensaje no encontrados');
+        // Fallback: mostrar alerta del navegador
+        alert(mensaje);
         return;
     }
     
@@ -176,7 +178,7 @@ function mostrarMensajeEncuesta(mensaje, tipo = 'info') {
     // Auto-ocultar después de 5 segundos para mensajes de éxito
     if (tipo === 'success') {
         setTimeout(() => {
-            mensajeDiv.classList.add('d-none');
+            ocultarMensajeEncuesta();
         }, 5000);
     }
 }
@@ -304,8 +306,8 @@ async function guardarEncuesta() {
     const data = {
         did: did,
         nombre: nombre,
-        desde: formatearFechaParaServidor(desde),
-        hasta: formatearFechaParaServidor(hasta),
+        desde: desde, // Enviar fecha en formato YYYY-MM-DD
+        hasta: hasta, // Enviar fecha en formato YYYY-MM-DD
         habilitado: document.getElementById('encuesta_habilitado').checked ? 1 : 0
     };
     
@@ -406,5 +408,33 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`✅ Elemento ${id} encontrado`);
         }
     });
+    
+    // Configurar eventos del modal para evitar problemas de backdrop
+    const modalElement = document.getElementById('modalEncuesta');
+    if (modalElement) {
+        // Limpiar backdrop cuando se oculta el modal
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Remover cualquier backdrop residual
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remover clase modal-open del body
+            document.body.classList.remove('modal-open');
+            
+            // Restaurar padding-right si fue modificado
+            document.body.style.paddingRight = '';
+            
+            console.log('Modal cerrado correctamente');
+        });
+        
+        // Prevenir problemas de focus
+        modalElement.addEventListener('shown.bs.modal', function() {
+            // Asegurar que el primer input tenga focus
+            const firstInput = modalElement.querySelector('input:not([type="hidden"])');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+    }
 });
 </script>

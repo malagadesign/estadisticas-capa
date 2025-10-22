@@ -527,8 +527,8 @@ class ConfigController {
         }
         
         $nombre = Request::clean(Request::post('nombre'));
-        $desde = Request::post('desde'); // Formato dd/mm/yyyy
-        $hasta = Request::post('hasta'); // Formato dd/mm/yyyy
+        $desde = Request::post('desde'); // Formato YYYY-MM-DD
+        $hasta = Request::post('hasta'); // Formato YYYY-MM-DD
         $habilitado = Request::post('habilitado', 1);
         
         if (empty($nombre) || empty($desde) || empty($hasta)) {
@@ -538,16 +538,16 @@ class ConfigController {
         try {
             $db = Database::getInstance();
             
-            // Convertir fechas de dd/mm/yyyy a yyyy-mm-dd
-            $desdeFormato = DateTime::createFromFormat('d/m/Y', $desde);
-            $hastaFormato = DateTime::createFromFormat('d/m/Y', $hasta);
+            // Convertir fechas de YYYY-MM-DD a dd/mm/yyyy para desdeText y hastaText
+            $desdeFormato = DateTime::createFromFormat('Y-m-d', $desde);
+            $hastaFormato = DateTime::createFromFormat('Y-m-d', $hasta);
             
             if (!$desdeFormato || !$hastaFormato) {
-                View::json(['success' => false, 'message' => 'Formato de fecha inválido. Use dd/mm/yyyy'], 400);
+                View::json(['success' => false, 'message' => 'Formato de fecha inválido'], 400);
             }
             
-            $desdeDB = $desdeFormato->format('Y-m-d');
-            $hastaDB = $hastaFormato->format('Y-m-d');
+            $desdeText = $desdeFormato->format('d/m/Y');
+            $hastaText = $hastaFormato->format('d/m/Y');
             
             // Validar que la fecha desde no sea mayor que hasta
             if ($desdeFormato > $hastaFormato) {
@@ -557,7 +557,7 @@ class ConfigController {
             $db->insert(
                 "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim, quien) 
                  VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
-                ['sssssii', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado, Session::get('user_id', 0)]
+                ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, Session::get('user_id', 0)]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta creada correctamente']);
@@ -577,8 +577,8 @@ class ConfigController {
         
         $did = Request::post('did');
         $nombre = Request::clean(Request::post('nombre'));
-        $desde = Request::post('desde');
-        $hasta = Request::post('hasta');
+        $desde = Request::post('desde'); // Formato YYYY-MM-DD
+        $hasta = Request::post('hasta'); // Formato YYYY-MM-DD
         $habilitado = Request::post('habilitado', 1);
         
         if (empty($did) || empty($nombre) || empty($desde) || empty($hasta)) {
@@ -588,16 +588,16 @@ class ConfigController {
         try {
             $db = Database::getInstance();
             
-            // Convertir fechas de dd/mm/yyyy a yyyy-mm-dd
-            $desdeFormato = DateTime::createFromFormat('d/m/Y', $desde);
-            $hastaFormato = DateTime::createFromFormat('d/m/Y', $hasta);
+            // Convertir fechas de YYYY-MM-DD a dd/mm/yyyy para desdeText y hastaText
+            $desdeFormato = DateTime::createFromFormat('Y-m-d', $desde);
+            $hastaFormato = DateTime::createFromFormat('Y-m-d', $hasta);
             
             if (!$desdeFormato || !$hastaFormato) {
-                View::json(['success' => false, 'message' => 'Formato de fecha inválido. Use dd/mm/yyyy'], 400);
+                View::json(['success' => false, 'message' => 'Formato de fecha inválido'], 400);
             }
             
-            $desdeDB = $desdeFormato->format('Y-m-d');
-            $hastaDB = $hastaFormato->format('Y-m-d');
+            $desdeText = $desdeFormato->format('d/m/Y');
+            $hastaText = $hastaFormato->format('d/m/Y');
             
             // Validar que la fecha desde no sea mayor que hasta
             if ($desdeFormato > $hastaFormato) {
@@ -606,7 +606,7 @@ class ConfigController {
             
             $db->query(
                 "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE did = ?",
-                ['sssssii', $nombre, $desde, $hasta, $desdeDB, $hastaDB, $habilitado, $did]
+                ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, $did]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta actualizada correctamente']);
