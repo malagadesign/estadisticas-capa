@@ -140,6 +140,12 @@ const encuestas = <?= json_encode($encuestas) ?>;
 function mostrarMensajeEncuesta(mensaje, tipo = 'info') {
     const mensajeDiv = document.getElementById('mensajeEncuesta');
     const mensajeTexto = document.getElementById('mensajeEncuestaTexto');
+    
+    if (!mensajeDiv || !mensajeTexto) {
+        console.warn('Elementos de mensaje no encontrados');
+        return;
+    }
+    
     const icono = mensajeDiv.querySelector('i');
     
     // Limpiar clases anteriores
@@ -177,7 +183,10 @@ function mostrarMensajeEncuesta(mensaje, tipo = 'info') {
 
 // Función para ocultar mensaje
 function ocultarMensajeEncuesta() {
-    document.getElementById('mensajeEncuesta').classList.add('d-none');
+    const mensajeDiv = document.getElementById('mensajeEncuesta');
+    if (mensajeDiv) {
+        mensajeDiv.classList.add('d-none');
+    }
 }
 
 // Función para obtener fecha actual en formato YYYY-MM-DD
