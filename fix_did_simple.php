@@ -11,13 +11,34 @@ ini_set('display_errors', 1);
 echo "<h1>🔧 Corrección del campo did en tabla encuestas</h1>";
 echo "<p>Iniciando diagnóstico...</p>";
 
+// Mostrar archivos disponibles para debugging
+echo "<h3>📁 Archivos disponibles en el directorio:</h3>";
+$files = scandir('.');
+echo "<ul>";
+foreach ($files as $file) {
+    if ($file != '.' && $file != '..' && !is_dir($file)) {
+        echo "<li>" . htmlspecialchars($file) . "</li>";
+    }
+}
+echo "</ul>";
+
 try {
     // Incluir configuración
-    if (file_exists('config.php')) {
-        require_once 'config.php';
-        echo "<p>✅ Archivo config.php cargado correctamente</p>";
-    } else {
-        echo "<p>❌ Error: No se encontró config.php</p>";
+    $config_paths = ['config.php', 'v2/config.php', 'app/config/app.php'];
+    $config_loaded = false;
+    
+    foreach ($config_paths as $path) {
+        if (file_exists($path)) {
+            require_once $path;
+            echo "<p>✅ Archivo config cargado desde: " . $path . "</p>";
+            $config_loaded = true;
+            break;
+        }
+    }
+    
+    if (!$config_loaded) {
+        echo "<p>❌ Error: No se encontró ningún archivo de configuración</p>";
+        echo "<p>Archivos buscados: " . implode(', ', $config_paths) . "</p>";
         exit;
     }
     
