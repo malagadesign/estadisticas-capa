@@ -531,7 +531,13 @@ class ConfigController {
         $hasta = Request::post('hasta'); // Formato YYYY-MM-DD
         $habilitado = Request::post('habilitado', 1);
         
+        // Log de depuración
+        error_log("Datos recibidos - nombre: '$nombre', desde: '$desde', hasta: '$hasta', habilitado: '$habilitado'");
+        
         if (empty($nombre) || empty($desde) || empty($hasta)) {
+            error_log("Error: Campos vacíos - nombre: " . (empty($nombre) ? 'VACÍO' : 'OK') . 
+                     ", desde: " . (empty($desde) ? 'VACÍO' : 'OK') . 
+                     ", hasta: " . (empty($hasta) ? 'VACÍO' : 'OK'));
             View::json(['success' => false, 'message' => 'Todos los campos son requeridos'], 400);
         }
         

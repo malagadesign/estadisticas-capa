@@ -311,19 +311,30 @@ async function guardarEncuesta() {
         habilitado: document.getElementById('encuesta_habilitado').checked ? 1 : 0
     };
     
+    // Log de depuración
+    console.log('Datos a enviar:', data);
+    console.log('URL:', url);
+    
     const btn = document.getElementById('btnGuardar');
     const textoOriginal = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
     
     try {
+        // Crear FormData para envío como formulario
+        const formData = new FormData();
+        formData.append('did', data.did);
+        formData.append('nombre', data.nombre);
+        formData.append('desde', data.desde);
+        formData.append('hasta', data.hasta);
+        formData.append('habilitado', data.habilitado);
+        
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             },
-            body: JSON.stringify(data)
+            body: formData
         });
         
         const result = await response.json();
