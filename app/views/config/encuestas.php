@@ -206,11 +206,17 @@ function formatearFechaParaServidor(fecha) {
 }
 
 function abrirModal(did) {
+    // Esperar a que el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => abrirModal(did));
+        return;
+    }
+    
     const modal = new bootstrap.Modal(document.getElementById('modalEncuesta'));
     const form = document.getElementById('formEncuesta');
     form.reset();
     
-    // Ocultar mensajes
+    // Ocultar mensajes (con verificación)
     ocultarMensajeEncuesta();
     
     if (did) {
@@ -253,10 +259,16 @@ function abrirModal(did) {
 }
 
 async function guardarEncuesta() {
+    // Verificar que el DOM esté listo
+    if (document.readyState === 'loading') {
+        console.warn('DOM no está listo para guardar');
+        return;
+    }
+    
     const form = document.getElementById('formEncuesta');
     const formData = new FormData(form);
     
-    // Ocultar mensajes anteriores
+    // Ocultar mensajes anteriores (con verificación)
     ocultarMensajeEncuesta();
     
     // Validar campos requeridos
@@ -373,4 +385,26 @@ async function eliminarEncuesta(did, nombre) {
 }
 
 // Los inputs de tipo date no necesitan formateo manual
+
+// Asegurar que todo esté listo cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Modal de encuestas inicializado correctamente');
+    
+    // Verificar que los elementos críticos existan
+    const elementosCriticos = [
+        'modalEncuesta',
+        'formEncuesta', 
+        'mensajeEncuesta',
+        'mensajeEncuestaTexto'
+    ];
+    
+    elementosCriticos.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (!elemento) {
+            console.error(`Elemento crítico no encontrado: ${id}`);
+        } else {
+            console.log(`✅ Elemento ${id} encontrado`);
+        }
+    });
+});
 </script>
