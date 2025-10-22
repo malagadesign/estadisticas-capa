@@ -24,7 +24,13 @@ echo "</ul>";
 
 try {
     // Incluir configuración
-    $config_paths = ['config.php', 'v2/config.php', 'app/config/app.php'];
+    $config_paths = [
+        'config.php', 
+        'config_v1.php',  // Agregar config_v1.php que vemos en la lista
+        'v2/config.php', 
+        'app/config/app.php',
+        'v2/app/config/app.php'  // Agregar ruta completa de v2
+    ];
     $config_loaded = false;
     
     foreach ($config_paths as $path) {
@@ -39,6 +45,17 @@ try {
     if (!$config_loaded) {
         echo "<p>❌ Error: No se encontró ningún archivo de configuración</p>";
         echo "<p>Archivos buscados: " . implode(', ', $config_paths) . "</p>";
+        
+        // Mostrar directorios disponibles también
+        echo "<h3>📁 Directorios disponibles:</h3>";
+        $dirs = scandir('.');
+        echo "<ul>";
+        foreach ($dirs as $dir) {
+            if ($dir != '.' && $dir != '..' && is_dir($dir)) {
+                echo "<li>" . htmlspecialchars($dir) . "/</li>";
+            }
+        }
+        echo "</ul>";
         exit;
     }
     
