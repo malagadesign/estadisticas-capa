@@ -1,6 +1,6 @@
 <?php
 /**
- * CAPA Encuestas v2.0 - Entry Point Funcional
+ * CAPA Encuestas v2.0 - Entry Point Funcional CORREGIDO
  * Versión que funciona sin routing complejo de Apache
  */
 
@@ -81,13 +81,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($_POST)) {
         .text-capa {
             color: var(--capa-purpura);
         }
+        
+        .card-capa {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--capa-purpura);
+            box-shadow: 0 0 0 0.2rem rgba(157, 78, 221, 0.25);
+        }
     </style>
 </head>
 <body class="bg-capa min-vh-100 d-flex align-items-center">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-5">
-                <div class="card shadow-lg border-0">
+                <div class="card card-capa">
                     <div class="card-body p-5">
                         <div class="text-center mb-4">
                             <h1 class="h3 text-capa mb-3">
@@ -146,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($_POST)) {
                                 
                                 <div class="mb-3">
                                     <label for="password" class="form-label">
-                                        <i class=\"fas fa-lock me-2\"></i>Contraseña
+                                        <i class="fas fa-lock me-2"></i>Contraseña
                                     </label>
                                     <input type="password" class="form-control" id="password" name="password" 
                                            placeholder="Ingrese su contraseña" required>

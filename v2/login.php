@@ -1,6 +1,6 @@
 <?php
 /**
- * LOGIN.PHP - Procesamiento de login directo
+ * LOGIN.PHP CORREGIDO - Maneja contraseñas en texto plano y con hash
  */
 
 require_once __DIR__ . '/config/app.php';
@@ -28,16 +28,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['s', $usuario]
         );
         
-        if ($user && password_verify($password, $user['psw'])) {
-            // Login exitoso
-            Session::set('user_id', $user['did']);
-            Session::set('user_name', $user['usuario']);
-            Session::set('user_type', $user['tipo']);
-            Session::set('user_logged', true);
+        if ($user) {
+            $password_valid = false;
             
-            echo json_encode(['success' => true, 'message' => 'Login exitoso']);
+            // Verificar contraseña - manejar tanto texto plano como hash
+            if (strlen($user['psw']) >= 60) {
+                // Contraseña con hash
+                $password_valid = password_verify($password, $user['psw']);
+            } else {
+                // Contraseña en texto plano (compatibilidad con sistema viejo)
+                $password_valid = ($password === $user['psw']);
+            }
+            
+            if ($password_valid) {
+                // Login exitoso
+                Session::set('user_id', $user['did']);
+                Session::set('user_name', $user['usuario']);
+                Session::set('user_type', $user['tipo']);
+                Session::set('user_logged', true);
+                
+                echo json_encode(['success' => true, 'message' => 'Login exitoso']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Credenciales incorrectas']);
+            }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Credenciales incorrectas']);
+            echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
         }
     } catch (Exception $e) {
         error_log("Login error: " . $e->getMessage());
