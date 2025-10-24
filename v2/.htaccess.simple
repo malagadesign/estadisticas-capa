@@ -1,0 +1,15 @@
+# CAPA Encuestas v2.0 - Configuración Simple
+
+# Habilitar rewrite engine
+RewriteEngine On
+
+# Routing básico
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Proteger archivos sensibles
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
