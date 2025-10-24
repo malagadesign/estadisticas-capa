@@ -1,0 +1,221 @@
+<?php
+/**
+ * UsuariosController - Gestión de Usuarios (solo admin)
+ */
+
+require_once __DIR__ . '/../models/Usuario.php';
+
+class UsuariosController {
+    
+    /**
+     * Vista principal - redirige a administrativos
+     */
+    public function index() {
+        View::redirect('/usuarios/administrativos');
+    }
+    
+    /**
+     * Usuarios Administrativos
+     */
+    public function administrativos() {
+        if (!Session::isAdmin()) {
+            View::forbidden();
+        }
+        
+        $db = Database::getInstance();
+        $usuarios = $db->fetchAll(
+            "SELECT * FROM usuarios 
+             WHERE tipo = 'adm' 
+             AND superado = 0 
+             AND elim = 0 
+             ORDER BY usuario ASC"
+        );
+        
+        View::render('usuarios/administrativos', [
+            'title' => 'Usuarios Administrativos - CAPA',
+            'usuarios' => $usuarios
+        ]);
+    }
+    
+    /**
+     * Usuarios Socios
+     */
+    public function socios() {
+        if (!Session::isAdmin()) {
+            View::forbidden();
+        }
+        
+        $db = Database::getInstance();
+        
+        // Nota: En la BD el tipo es 'socio' (5 letras), no 'soc'
+        $usuarios = $db->fetchAll(
+            "SELECT * FROM usuarios 
+             WHERE tipo = 'socio' 
+             AND superado = 0 
+             AND elim = 0 
+             ORDER BY usuario ASC"
+        );
+        
+        $mercados = $db->fetchAll(
+            "SELECT * FROM mercados 
+             WHERE superado = 0 AND elim = 0 AND habilitado = 1 
+             ORDER BY nombre ASC"
+        );
+        
+        View::render('usuarios/socios', [
+            'title' => 'Usuarios Socios - CAPA',
+            'usuarios' => $usuarios,
+            'mercados' => $mercados
+        ]);
+    }
+    
+    /**
+     * Crear usuario
+     */
+    public function create() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $tipo = Request::post('tipo'); // 'adm' o 'socio'
+        $usuario = Request::clean(Request::post('usuario'));
+        $mail = Request::clean(Request::post('mail'));
+        $password = Request::post('password');
+        $habilitado = Request::post('habilitado', 1);
+        
+        // Validaciones
+        if (empty($usuario) || empty($mail)) {
+            View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
+        }
+        
+        // Contraseña opcional - si no se proporciona, generar una automática
+        if (empty($password)) {
+            $password = 'temp_' . uniqid(); // Contraseña temporal
+        }
+        
+        if (!in_array($tipo, ['adm', 'socio'])) {
+            View::json(['success' => false, 'message' => 'Tipo de usuario inválido'], 400);
+        }
+        
+        // Validar email
+        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+            View::json(['success' => false, 'message' => 'Email inválido'], 400);
+        }
+        
+        // Validar que el usuario no exista
+        $db = Database::getInstance();
+        $existe = $db->fetchOne(
+            "SELECT COUNT(*) as total FROM usuarios WHERE usuario = ? AND elim = 0",
+            ['s', $usuario]
+        );
+        
+        if ($existe['total'] > 0) {
+            View::json(['success' => false, 'message' => 'El nombre de usuario ya existe'], 400);
+        }
+        
+        try {
+            // Hash de contraseña
+            $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+            
+            // Insertar usuario
+            $db->insert(
+                "INSERT INTO usuarios (usuario, mail, psw, tipo, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, ?, ?, ?, 0, 0, ?)",
+                ['sssiii', $usuario, $mail, $passwordHash, $tipo, $habilitado, Session::get('user_id', 0)]
+            );
+            
+            View::json(['success' => true, 'message' => 'Usuario creado correctamente']);
+        } catch (Exception $e) {
+            error_log("Error creando usuario: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al crear usuario'], 500);
+        }
+    }
+    
+    /**
+     * Actualizar usuario
+     */
+    public function update() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        $usuario = Request::clean(Request::post('usuario'));
+        $mail = Request::clean(Request::post('mail'));
+        $password = Request::post('password');
+        $habilitado = Request::post('habilitado', 1);
+        
+        if (empty($did) || empty($usuario) || empty($mail)) {
+            View::json(['success' => false, 'message' => 'Todos los campos son requeridos'], 400);
+        }
+        
+        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+            View::json(['success' => false, 'message' => 'Email inválido'], 400);
+        }
+        
+        try {
+            $db = Database::getInstance();
+            
+            // Si hay nueva contraseña, actualizarla
+            if (!empty($password)) {
+                $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+                $db->query(
+                    "UPDATE usuarios 
+                     SET usuario = ?, mail = ?, psw = ?, habilitado = ? 
+                     WHERE did = ?",
+                    ['sssii', $usuario, $mail, $passwordHash, $habilitado, $did]
+                );
+            } else {
+                // Sin cambio de contraseña
+                $db->query(
+                    "UPDATE usuarios 
+                     SET usuario = ?, mail = ?, habilitado = ? 
+                     WHERE did = ?",
+                    ['ssii', $usuario, $mail, $habilitado, $did]
+                );
+            }
+            
+            View::json(['success' => true, 'message' => 'Usuario actualizado correctamente']);
+        } catch (Exception $e) {
+            error_log("Error actualizando usuario: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
+        }
+    }
+    
+    /**
+     * Habilitar/Deshabilitar usuario
+     */
+    public function toggle() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        $habilitado = Request::post('habilitado', 0);
+        
+        if (empty($did)) {
+            View::json(['success' => false, 'message' => 'ID requerido'], 400);
+        }
+        
+        // Prevenir que el admin se deshabilite a sí mismo
+        if ($did == Session::get('user_id')) {
+            View::json(['success' => false, 'message' => 'No puede deshabilitarse a sí mismo'], 400);
+        }
+        
+        try {
+            $db = Database::getInstance();
+            $db->query(
+                "UPDATE usuarios SET habilitado = ? WHERE did = ?",
+                ['ii', $habilitado, $did]
+            );
+            
+            $mensaje = $habilitado ? 'Usuario habilitado' : 'Usuario deshabilitado';
+            View::json(['success' => true, 'message' => $mensaje]);
+        } catch (Exception $e) {
+            error_log("Error toggle usuario: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al actualizar estado'], 500);
+        }
+    }
+}
+
+
