@@ -1,135 +1,153 @@
 <?php
 /**
+ * MEJORA DE GESTIÓN DE USUARIOS - AGREGAR ELIMINACIÓN
+ * Agrega la funcionalidad de eliminar usuarios para administradores
+ */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+echo "<h1>🗑️ MEJORA DE GESTIÓN DE USUARIOS</h1>";
+echo "<p>🔍 Agregando funcionalidad de eliminación de usuarios...</p>";
+
+// ============================================
+// PASO 1: CREAR USUARIOS.PHP MEJORADO
+// ============================================
+
+echo "<h2>👥 PASO 1: Creando usuarios.php mejorado</h2>";
+
+$usuarios_mejorado_content = '<?php
+/**
  * USUARIOS.PHP MEJORADO - Gestión completa de usuarios
  * Incluye crear, editar, deshabilitar/habilitar y eliminar
  */
 
-require_once __DIR__ . '/config/app.php';
-require_once __DIR__ . '/core/Database.php';
-require_once __DIR__ . '/core/Session.php';
+require_once __DIR__ . \'/config/app.php\';
+require_once __DIR__ . \'/core/Database.php\';
+require_once __DIR__ . \'/core/Session.php\';
 
 Session::start();
 
-if (!Session::isLoggedIn() || Session::get('user_type') !== 'adm') {
-    header('Location: index-working.php');
+if (!Session::isLoggedIn() || Session::get(\'user_type\') !== \'adm\') {
+    header(\'Location: index-working.php\');
     exit;
 }
 
 $db = Database::getInstance();
-$current_user_id = Session::get('user_id');
+$current_user_id = Session::get(\'user_id\');
 
 // Procesar acciones POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+if ($_SERVER[\'REQUEST_METHOD\'] === \'POST\') {
+    $action = $_POST[\'action\'] ?? \'\';
     
-    if ($action === 'create') {
-        $usuario = trim($_POST['usuario'] ?? '');
-        $mail = trim($_POST['mail'] ?? '');
-        $habilitado = isset($_POST['habilitado']) ? 1 : 0;
+    if ($action === \'create\') {
+        $usuario = trim($_POST[\'usuario\'] ?? \'\');
+        $mail = trim($_POST[\'mail\'] ?? \'\');
+        $habilitado = isset($_POST[\'habilitado\']) ? 1 : 0;
         
         if (empty($usuario) || empty($mail)) {
-            $error = 'Usuario y email son requeridos';
+            $error = \'Usuario y email son requeridos\';
         } else {
             try {
                 // Verificar que no exista
                 $existe = $db->fetchOne(
                     "SELECT COUNT(*) as total FROM usuarios WHERE usuario = ? AND elim = 0",
-                    ['s', $usuario]
+                    [\'s\', $usuario]
                 );
                 
-                if ($existe['total'] > 0) {
-                    $error = 'El usuario ya existe';
+                if ($existe[\'total\'] > 0) {
+                    $error = \'El usuario ya existe\';
                 } else {
                     // Crear usuario
-                    $password = 'temp_' . uniqid();
+                    $password = \'temp_\' . uniqid();
                     $passwordHash = password_hash($password, PASSWORD_BCRYPT);
                     
                     $db->insert(
-                        "INSERT INTO usuarios (usuario, mail, psw, tipo, habilitado, superado, elim) VALUES (?, ?, ?, 'adm', ?, 0, 0)",
-                        ['sssi', $usuario, $mail, $passwordHash, $habilitado]
+                        "INSERT INTO usuarios (usuario, mail, psw, tipo, habilitado, superado, elim) VALUES (?, ?, ?, \'adm\', ?, 0, 0)",
+                        [\'sssi\', $usuario, $mail, $passwordHash, $habilitado]
                     );
                     
-                    $success = 'Usuario creado correctamente';
+                    $success = \'Usuario creado correctamente\';
                 }
             } catch (Exception $e) {
-                $error = 'Error al crear usuario: ' . $e->getMessage();
+                $error = \'Error al crear usuario: \' . $e->getMessage();
             }
         }
     }
     
-    if ($action === 'toggle') {
-        $did = (int)($_POST['did'] ?? 0);
-        $habilitado = (int)($_POST['habilitado'] ?? 0);
+    if ($action === \'toggle\') {
+        $did = (int)($_POST[\'did\'] ?? 0);
+        $habilitado = (int)($_POST[\'habilitado\'] ?? 0);
         
         if ($did > 0 && $did != $current_user_id) {
             try {
                 $db->query(
                     "UPDATE usuarios SET habilitado = ? WHERE did = ?",
-                    ['ii', $habilitado, $did]
+                    [\'ii\', $habilitado, $did]
                 );
-                $success = 'Estado actualizado correctamente';
+                $success = \'Estado actualizado correctamente\';
             } catch (Exception $e) {
-                $error = 'Error al actualizar estado: ' . $e->getMessage();
+                $error = \'Error al actualizar estado: \' . $e->getMessage();
             }
         } else {
-            $error = 'No puedes modificar tu propio estado';
+            $error = \'No puedes modificar tu propio estado\';
         }
     }
     
-    if ($action === 'delete') {
-        $did = (int)($_POST['did'] ?? 0);
+    if ($action === \'delete\') {
+        $did = (int)($_POST[\'did\'] ?? 0);
         
         if ($did > 0 && $did != $current_user_id) {
             try {
                 // Eliminar usuario (soft delete)
                 $db->query(
                     "UPDATE usuarios SET elim = 1 WHERE did = ?",
-                    ['i', $did]
+                    [\'i\', $did]
                 );
-                $success = 'Usuario eliminado correctamente';
+                $success = \'Usuario eliminado correctamente\';
             } catch (Exception $e) {
-                $error = 'Error al eliminar usuario: ' . $e->getMessage();
+                $error = \'Error al eliminar usuario: \' . $e->getMessage();
             }
         } else {
-            $error = 'No puedes eliminar tu propio usuario';
+            $error = \'No puedes eliminar tu propio usuario\';
         }
     }
     
-    if ($action === 'edit') {
-        $did = (int)($_POST['did'] ?? 0);
-        $usuario = trim($_POST['usuario'] ?? '');
-        $mail = trim($_POST['mail'] ?? '');
-        $habilitado = isset($_POST['habilitado']) ? 1 : 0;
+    if ($action === \'edit\') {
+        $did = (int)($_POST[\'did\'] ?? 0);
+        $usuario = trim($_POST[\'usuario\'] ?? \'\');
+        $mail = trim($_POST[\'mail\'] ?? \'\');
+        $habilitado = isset($_POST[\'habilitado\']) ? 1 : 0;
         
         if ($did > 0 && !empty($usuario) && !empty($mail)) {
             try {
                 // Verificar que no exista otro usuario con el mismo nombre
                 $existe = $db->fetchOne(
                     "SELECT COUNT(*) as total FROM usuarios WHERE usuario = ? AND did != ? AND elim = 0",
-                    ['si', $usuario, $did]
+                    [\'si\', $usuario, $did]
                 );
                 
-                if ($existe['total'] > 0) {
-                    $error = 'Ya existe otro usuario con ese nombre';
+                if ($existe[\'total\'] > 0) {
+                    $error = \'Ya existe otro usuario con ese nombre\';
                 } else {
                     $db->query(
                         "UPDATE usuarios SET usuario = ?, mail = ?, habilitado = ? WHERE did = ?",
-                        ['ssii', $usuario, $mail, $habilitado, $did]
+                        [\'ssii\', $usuario, $mail, $habilitado, $did]
                     );
-                    $success = 'Usuario actualizado correctamente';
+                    $success = \'Usuario actualizado correctamente\';
                 }
             } catch (Exception $e) {
-                $error = 'Error al actualizar usuario: ' . $e->getMessage();
+                $error = \'Error al actualizar usuario: \' . $e->getMessage();
             }
         } else {
-            $error = 'Datos incompletos';
+            $error = \'Datos incompletos\';
         }
     }
 }
 
 // Obtener usuarios administrativos
 $usuarios = $db->fetchAll(
-    "SELECT * FROM usuarios WHERE tipo = 'adm' AND superado = 0 AND elim = 0 ORDER BY usuario ASC"
+    "SELECT * FROM usuarios WHERE tipo = \'adm\' AND superado = 0 AND elim = 0 ORDER BY usuario ASC"
 );
 ?>
 <!DOCTYPE html>
@@ -253,11 +271,11 @@ $usuarios = $db->fetchAll(
                                     <?php else: ?>
                                     <?php foreach ($usuarios as $usuario): ?>
                                     <tr>
-                                        <td><span class="badge bg-secondary"><?= $usuario['did'] ?></span></td>
-                                        <td><strong><?= htmlspecialchars($usuario['usuario']) ?></strong></td>
-                                        <td><?= htmlspecialchars($usuario['mail']) ?></td>
+                                        <td><span class="badge bg-secondary"><?= $usuario[\'did\'] ?></span></td>
+                                        <td><strong><?= htmlspecialchars($usuario[\'usuario\']) ?></strong></td>
+                                        <td><?= htmlspecialchars($usuario[\'mail\']) ?></td>
                                         <td>
-                                            <?php if ($usuario['habilitado'] == 1): ?>
+                                            <?php if ($usuario[\'habilitado\'] == 1): ?>
                                             <span class="badge bg-success">
                                                 <i class="fas fa-check me-1"></i>Habilitado
                                             </span>
@@ -268,7 +286,7 @@ $usuarios = $db->fetchAll(
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($usuario['did'] != $current_user_id): ?>
+                                            <?php if ($usuario[\'did\'] != $current_user_id): ?>
                                             <div class="btn-group" role="group">
                                                 <!-- Editar -->
                                                 <button class="btn btn-sm btn-outline-primary" 
@@ -280,21 +298,21 @@ $usuarios = $db->fetchAll(
                                                 <!-- Toggle Estado -->
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="toggle">
-                                                    <input type="hidden" name="did" value="<?= $usuario['did'] ?>">
-                                                    <input type="hidden" name="habilitado" value="<?= $usuario['habilitado'] == 1 ? 0 : 1 ?>">
-                                                    <button type="submit" class="btn btn-sm btn-outline-<?= $usuario['habilitado'] == 1 ? 'warning' : 'success' ?>" 
-                                                            onclick="return confirm('¿Está seguro de <?= $usuario['habilitado'] == 1 ? 'deshabilitar' : 'habilitar' ?> este usuario?')"
-                                                            title="<?= $usuario['habilitado'] == 1 ? 'Deshabilitar' : 'Habilitar' ?>">
-                                                        <i class="fas fa-<?= $usuario['habilitado'] == 1 ? 'ban' : 'check' ?>"></i>
+                                                    <input type="hidden" name="did" value="<?= $usuario[\'did\'] ?>">
+                                                    <input type="hidden" name="habilitado" value="<?= $usuario[\'habilitado\'] == 1 ? 0 : 1 ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-<?= $usuario[\'habilitado\'] == 1 ? \'warning\' : \'success\' ?>" 
+                                                            onclick="return confirm(\'¿Está seguro de <?= $usuario[\'habilitado\'] == 1 ? \'deshabilitar\' : \'habilitar\' ?> este usuario?\')"
+                                                            title="<?= $usuario[\'habilitado\'] == 1 ? \'Deshabilitar\' : \'Habilitar\' ?>">
+                                                        <i class="fas fa-<?= $usuario[\'habilitado\'] == 1 ? \'ban\' : \'check\' ?>"></i>
                                                     </button>
                                                 </form>
                                                 
                                                 <!-- Eliminar -->
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="did" value="<?= $usuario['did'] ?>">
+                                                    <input type="hidden" name="did" value="<?= $usuario[\'did\'] ?>">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                            onclick="return confirm('¿Está seguro de ELIMINAR este usuario? Esta acción no se puede deshacer.')"
+                                                            onclick="return confirm(\'¿Está seguro de ELIMINAR este usuario? Esta acción no se puede deshacer.\')"
                                                             title="Eliminar">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
@@ -404,13 +422,70 @@ $usuarios = $db->fetchAll(
     
     <script>
         function editarUsuario(usuario) {
-            document.getElementById('edit_did').value = usuario.did;
-            document.getElementById('edit_usuario').value = usuario.usuario;
-            document.getElementById('edit_mail').value = usuario.mail;
-            document.getElementById('edit_habilitado').checked = usuario.habilitado == 1;
+            document.getElementById(\'edit_did\').value = usuario.did;
+            document.getElementById(\'edit_usuario\').value = usuario.usuario;
+            document.getElementById(\'edit_mail\').value = usuario.mail;
+            document.getElementById(\'edit_habilitado\').checked = usuario.habilitado == 1;
             
-            new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+            new bootstrap.Modal(document.getElementById(\'modalEditarUsuario\')).show();
         }
     </script>
 </body>
 </html>
+';
+
+if (file_put_contents('v2/usuarios.php', $usuarios_mejorado_content)) {
+    echo "<p>✅ Archivo v2/usuarios.php mejorado</p>";
+} else {
+    echo "<p>❌ Error al mejorar v2/usuarios.php</p>";
+}
+
+// ============================================
+// PASO 2: RESUMEN DE MEJORAS
+// ============================================
+
+echo "<h2>📋 PASO 2: Resumen de mejoras implementadas</h2>";
+
+echo "<p style=\"color: green; font-weight: bold;\">🎉 GESTIÓN DE USUARIOS MEJORADA</p>";
+
+echo "<h3>✨ Nuevas funcionalidades:</h3>";
+echo "<ul>";
+echo "<li><strong>✅ Eliminar usuarios:</strong> Botón rojo con ícono de basura</li>";
+echo "<li><strong>✅ Editar usuarios:</strong> Botón azul con ícono de lápiz</li>";
+echo "<li><strong>✅ Deshabilitar/Habilitar:</strong> Botón amarillo/verde</li>";
+echo "<li><strong>✅ Crear usuarios:</strong> Botón púrpura con ícono de más</li>";
+echo "</ul>";
+
+echo "<h3>🔒 Seguridad implementada:</h3>";
+echo "<ul>";
+echo "<li><strong>Protección propia:</strong> No puedes eliminar/modificar tu propio usuario</li>";
+echo "<li><strong>Confirmaciones:</strong> Alertas antes de eliminar o deshabilitar</li>";
+echo "<li><strong>Soft delete:</strong> Los usuarios se marcan como eliminados, no se borran</li>";
+echo "<li><strong>Validaciones:</strong> Verificación de datos antes de procesar</li>";
+echo "</ul>";
+
+echo "<h3>🎨 Interfaz mejorada:</h3>";
+echo "<ul>";
+echo "<li><strong>Botones agrupados:</strong> Acciones organizadas en grupos</li>";
+echo "<li><strong>Iconos descriptivos:</strong> Cada acción tiene su ícono</li>";
+echo "<li><strong>Colores intuitivos:</strong> Verde=habilitar, Amarillo=deshabilitar, Rojo=eliminar</li>";
+echo "<li><strong>Modales:</strong> Formularios en ventanas emergentes</li>";
+echo "</ul>";
+
+echo "<h3>🔗 Archivo actualizado:</h3>";
+echo "<ul>";
+echo "<li><a href=\"v2/usuarios.php\">v2/usuarios.php</a> - Gestión completa de usuarios</li>";
+echo "</ul>";
+
+echo "<h3>🚀 Próximos pasos:</h3>";
+echo "<ol>";
+echo "<li><strong>Probar eliminación:</strong> Accede a <a href=\"v2/usuarios.php\">v2/usuarios.php</a></li>";
+echo "<li><strong>Crear usuario de prueba:</strong> Usa el botón \"Nuevo Usuario\"</li>";
+echo "<li><strong>Eliminar usuario:</strong> Usa el botón rojo con ícono de basura</li>";
+echo "<li><strong>Editar usuario:</strong> Usa el botón azul con ícono de lápiz</li>";
+echo "</ol>";
+
+echo "<hr>";
+echo "<p><strong>💡 Ahora tienes control completo sobre los usuarios administrativos</strong></p>";
+echo "<p><strong>🎯 Todas las operaciones CRUD están disponibles: Crear, Leer, Actualizar, Eliminar</strong></p>";
+?>
