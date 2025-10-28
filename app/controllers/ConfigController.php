@@ -616,7 +616,7 @@ class ConfigController {
             }
             
             $db->query(
-                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE id = ?",
+                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE did = ?",
                 ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, $did]
             );
             
@@ -644,7 +644,7 @@ class ConfigController {
         try {
             $db = Database::getInstance();
             $db->query(
-                "UPDATE encuestas SET elim = 1 WHERE id = ?",
+                "UPDATE encuestas SET elim = 1 WHERE did = ?",
                 ['i', $did]
             );
             
