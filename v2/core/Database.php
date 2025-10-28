@@ -58,7 +58,7 @@ class Database {
         
         if (!$stmt->execute()) {
             error_log("Execute failed: " . $stmt->error . " SQL: " . $sql);
-            throw new Exception("Error ejecutando la consulta");
+            throw new Exception($stmt->error ?: "Error ejecutando la consulta");
         }
         
         $result = $stmt->get_result();
