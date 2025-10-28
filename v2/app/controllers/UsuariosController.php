@@ -117,11 +117,15 @@ class UsuariosController {
             // Hash de contraseña
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
             
-            // Insertar usuario
+            // Calcular próximo DID único (evita colisión con índice unique_did)
+            $nextDidRow = $db->fetchOne("SELECT COALESCE(MAX(did), 0) + 1 AS nextDid FROM usuarios");
+            $nextDid = (int)($nextDidRow['nextDid'] ?? 1);
+            
+            // Insertar seteando DID explícitamente
             $db->insert(
-                "INSERT INTO usuarios (usuario, mail, psw, tipo, habilitado, superado, elim, quien) 
-                 VALUES (?, ?, ?, ?, ?, 0, 0, ?)",
-                ['sssiii', $usuario, $mail, $passwordHash, $tipo, $habilitado, Session::get('user_id', 0)]
+                "INSERT INTO usuarios (did, usuario, mail, psw, tipo, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
+                ['isssiii', $nextDid, $usuario, $mail, $passwordHash, $tipo, $habilitado, Session::get('user_id', 0)]
             );
             
             View::json(['success' => true, 'message' => 'Usuario creado correctamente']);
