@@ -560,17 +560,15 @@ class ConfigController {
                 View::json(['success' => false, 'message' => 'La fecha de inicio no puede ser mayor que la fecha de fin'], 400);
             }
             
-            // Insertar usando solo los campos necesarios, MySQL generará id automáticamente
-            $insertId = $db->insert(
-                "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim, quien) 
-                 VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
-                ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, Session::get('user_id', 0)]
-            );
-            
-            // Copiar el id generado al campo did
-            $db->query(
-                "UPDATE encuestas SET did = ? WHERE id = ?",
-                ['ii', $insertId, $insertId]
+            // Calcular próximo DID único (evita colisión con índice unique_did)
+            $nextDidRow = $db->fetchOne("SELECT COALESCE(MAX(did), 0) + 1 AS nextDid FROM encuestas");
+            $nextDid = (int)($nextDidRow['nextDid'] ?? 1);
+
+            // Insertar seteando DID explícitamente
+            $db->insert(
+                "INSERT INTO encuestas (did, nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?)",
+                ['isssssii', $nextDid, $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, Session::get('user_id', 0)]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta creada correctamente']);
