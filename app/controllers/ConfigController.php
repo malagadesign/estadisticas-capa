@@ -560,10 +560,17 @@ class ConfigController {
                 View::json(['success' => false, 'message' => 'La fecha de inicio no puede ser mayor que la fecha de fin'], 400);
             }
             
-            $db->insert(
+            // Insertar usando solo los campos necesarios, MySQL generará id automáticamente
+            $insertId = $db->insert(
                 "INSERT INTO encuestas (nombre, desdeText, hastaText, desde, hasta, habilitado, superado, elim, quien) 
                  VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
                 ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, Session::get('user_id', 0)]
+            );
+            
+            // Copiar el id generado al campo did
+            $db->query(
+                "UPDATE encuestas SET did = ? WHERE id = ?",
+                ['ii', $insertId, $insertId]
             );
             
             View::json(['success' => true, 'message' => 'Encuesta creada correctamente']);
@@ -611,7 +618,7 @@ class ConfigController {
             }
             
             $db->query(
-                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE did = ?",
+                "UPDATE encuestas SET nombre = ?, desdeText = ?, hastaText = ?, desde = ?, hasta = ?, habilitado = ? WHERE id = ?",
                 ['sssssii', $nombre, $desdeText, $hastaText, $desde, $hasta, $habilitado, $did]
             );
             
@@ -639,7 +646,7 @@ class ConfigController {
         try {
             $db = Database::getInstance();
             $db->query(
-                "UPDATE encuestas SET elim = 1 WHERE did = ?",
+                "UPDATE encuestas SET elim = 1 WHERE id = ?",
                 ['i', $did]
             );
             
