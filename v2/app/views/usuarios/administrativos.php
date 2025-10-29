@@ -173,6 +173,7 @@ function abrirModal(usuario) {
     const passwordInput = document.getElementById('password');
     const requeridoPassword = document.getElementById('requeridoPassword');
     const textoPassword = document.getElementById('textoPassword');
+    try { console.log('abrirModal(admin):', usuario); } catch (e) {}
     
     if (usuario) {
         document.getElementById('textoTitulo').textContent = 'Editar Administrador';
@@ -196,6 +197,16 @@ function abrirModal(usuario) {
         passwordInput.required = true;
         requeridoPassword.style.display = 'inline';
         textoPassword.style.display = 'none';
+    }
+    
+    try {
+        if (!modalUsuario) {
+            modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
+        }
+        modalUsuario.show();
+    } catch (e) {
+        console.error('Error mostrando modal admin:', e);
+        try { new bootstrap.Modal(document.getElementById('modalUsuario')).show(); } catch (_) {}
     }
 }
 

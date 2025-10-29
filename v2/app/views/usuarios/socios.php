@@ -201,7 +201,7 @@ async function guardarUsuario(event) {
         const formData = new FormData(form);
         const data = {
             did: did,
-            tipo: 'soc',
+            tipo: 'socio',
             didMercado: null,
             usuario: formData.get('usuario'),
             mail: formData.get('mail'),
