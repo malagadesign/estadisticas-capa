@@ -37,6 +37,7 @@ $router->get('/usuarios/socios', 'UsuariosController@socios');
 $router->post('/usuarios/create', 'UsuariosController@create');
 $router->post('/usuarios/update', 'UsuariosController@update');
 $router->post('/usuarios/toggle', 'UsuariosController@toggle');
+$router->post('/usuarios/delete', 'UsuariosController@delete');
 
 // ===============================================
 // CONFIGURACIÓN (Solo Admin)

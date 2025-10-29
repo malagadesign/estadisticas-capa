@@ -40,9 +40,25 @@ class Request {
     }
     
     /**
-     * Obtener parámetro POST
+     * Obtener parámetro POST (soporta JSON)
      */
     public static function post($key, $default = null) {
+        // Si viene JSON, parsearlo una vez
+        static $jsonData = null;
+        if ($jsonData === null && self::isPost()) {
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (strpos($contentType, 'application/json') !== false) {
+                $rawInput = file_get_contents('php://input');
+                $jsonData = json_decode($rawInput, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($jsonData)) {
+                    // Fusionar con $_POST por si hay datos mixtos
+                    $_POST = array_merge($_POST, $jsonData);
+                }
+            } else {
+                $jsonData = [];
+            }
+        }
+        
         return $_POST[$key] ?? $default;
     }
     
@@ -54,9 +70,11 @@ class Request {
     }
     
     /**
-     * Obtener todos los POST
+     * Obtener todos los POST (soporta JSON)
      */
     public static function postAll() {
+        // Forzar parseo de JSON si existe
+        self::post('_force_parse');
         return $_POST;
     }
     

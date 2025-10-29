@@ -149,8 +149,14 @@ class UsuariosController {
         $password = Request::post('password');
         $habilitado = Request::post('habilitado', 1);
         
-        if (empty($did) || empty($usuario) || empty($mail)) {
-            View::json(['success' => false, 'message' => 'Todos los campos son requeridos'], 400);
+        // Validar campos básicos
+        if (empty($usuario) || empty($mail)) {
+            View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
+        }
+        
+        // Validar did para edición
+        if (empty($did) || $did == '0' || $did == 0) {
+            View::json(['success' => false, 'message' => 'ID requerido para editar'], 400);
         }
         
         if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
@@ -218,6 +224,39 @@ class UsuariosController {
         } catch (Exception $e) {
             error_log("Error toggle usuario: " . $e->getMessage());
             View::json(['success' => false, 'message' => 'Error al actualizar estado'], 500);
+        }
+    }
+    
+    /**
+     * Eliminar usuario (soft delete)
+     */
+    public function delete() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        
+        if (empty($did) || $did == '0' || $did == 0) {
+            View::json(['success' => false, 'message' => 'ID requerido'], 400);
+        }
+        
+        // Prevenir que el admin se elimine a sí mismo
+        if ($did == Session::get('user_id')) {
+            View::json(['success' => false, 'message' => 'No puede eliminarse a sí mismo'], 400);
+        }
+        
+        try {
+            $db = Database::getInstance();
+            $db->query(
+                "UPDATE usuarios SET elim = 1 WHERE did = ?",
+                ['i', $did]
+            );
+            
+            View::json(['success' => true, 'message' => 'Usuario eliminado correctamente']);
+        } catch (Exception $e) {
+            error_log("Error eliminando usuario: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al eliminar'], 500);
         }
     }
 }

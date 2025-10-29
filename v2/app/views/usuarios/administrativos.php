@@ -59,18 +59,25 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-capa-purpura me-1" 
-                                                        onclick='abrirModal(<?= json_encode($usuario) ?>)' 
-                                                        title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <?php if ($usuario['did'] != Session::get('user_id')): ?>
-                                                    <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
-                                                            onclick="toggleUsuario(<?= $usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
-                                                            title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
-                                                        <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-capa-purpura" 
+                                                            onclick='abrirModal(<?= json_encode($usuario) ?>)' 
+                                                            title="Editar">
+                                                        <i class="fas fa-edit"></i>
                                                     </button>
-                                                <?php endif; ?>
+                                                    <?php if ($usuario['did'] != Session::get('user_id')): ?>
+                                                        <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
+                                                                onclick="toggleUsuario(<?= $usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
+                                                                title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
+                                                            <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                onclick="eliminarUsuario(<?= $usuario['did'] ?>, '<?= e($usuario['usuario']) ?>')"
+                                                                title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -268,6 +275,37 @@ async function toggleUsuario(did, nuevoEstado) {
             setTimeout(() => window.location.reload(), 1000);
         } else {
             showToast(result.message || 'Error al actualizar', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'danger');
+    }
+}
+
+async function eliminarUsuario(did, nombre) {
+    if (!confirm(`¿Está seguro de ELIMINAR el usuario "${nombre}"? Esta acción no se puede deshacer.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('<?= route('/usuarios/delete') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                did: did
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Error al eliminar', 'danger');
         }
     } catch (error) {
         console.error('Error:', error);
