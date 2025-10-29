@@ -54,16 +54,23 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-capa-purpura me-1" 
-                                                        onclick="abrirModal(<?= htmlspecialchars(json_encode($usuario), ENT_QUOTES, 'UTF-8') ?>)" 
-                                                        title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
-                                                        onclick="toggleUsuario(<?= (int)$usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
-                                                        title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
-                                                    <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
-                                                </button>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-capa-purpura" 
+                                                            onclick="abrirModal(<?= htmlspecialchars(json_encode($usuario), ENT_QUOTES, 'UTF-8') ?>)" 
+                                                            title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
+                                                            onclick="toggleUsuario(<?= (int)$usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
+                                                            title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
+                                                        <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="eliminarUsuario(<?= $usuario['did'] ?>, '<?= e($usuario['usuario']) ?>')"
+                                                            title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -252,11 +259,13 @@ async function guardarUsuario(event) {
 async function toggleUsuario(did, nuevoEstado) {
     const textoAccion = nuevoEstado ? 'habilitar' : 'deshabilitar';
     
-    if (!confirm(`¿Está seguro de ${textoAccion} este usuario?`)) {
+    if (!confirm(`¿Está seguro de ${textoAccion} este usuario socio?`)) {
         return;
     }
     
     try {
+        console.log('toggleUsuario(socio):', did, nuevoEstado);
+        
         const response = await fetch('<?= route('/usuarios/toggle') ?>', {
             method: 'POST',
             headers: {
@@ -269,6 +278,8 @@ async function toggleUsuario(did, nuevoEstado) {
             })
         });
         
+        console.log('toggle response:', response);
+        
         const result = await response.json();
         
         if (result.success) {
@@ -278,7 +289,42 @@ async function toggleUsuario(did, nuevoEstado) {
             showToast(result.message || 'Error al actualizar', 'danger');
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error toggle socio:', error);
+        showToast('Error de conexión', 'danger');
+    }
+}
+
+async function eliminarUsuario(did, nombre) {
+    if (!confirm(`¿Está seguro de ELIMINAR el usuario socio "${nombre}"? Esta acción no se puede deshacer.`)) {
+        return;
+    }
+    
+    try {
+        console.log('eliminarUsuario(socio):', did, nombre);
+        
+        const response = await fetch('<?= route('/usuarios/delete') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                did: did
+            })
+        });
+        
+        console.log('delete response:', response);
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Error al eliminar', 'danger');
+        }
+    } catch (error) {
+        console.error('Error delete socio:', error);
         showToast('Error de conexión', 'danger');
     }
 }
