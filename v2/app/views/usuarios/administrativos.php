@@ -61,7 +61,7 @@
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <button class="btn btn-sm btn-outline-capa-purpura" 
-                                                            onclick='abrirModal(<?= json_encode($usuario) ?>)' 
+                                                            onclick='abrirModal(<?= json_encode($usuario, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>)' 
                                                             title="Editar">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
@@ -105,6 +105,7 @@
             <form id="formUsuario" onsubmit="guardarUsuario(event)">
                 <div class="modal-body">
                     <input type="hidden" id="did" name="did" value="0">
+                    <input type="hidden" id="modo" name="modo" value="create">
                     <input type="hidden" id="tipo" name="tipo" value="adm">
                     
                     <div class="mb-3">
@@ -176,6 +177,7 @@ function abrirModal(usuario) {
     if (usuario) {
         document.getElementById('textoTitulo').textContent = 'Editar Administrador';
         document.getElementById('did').value = usuario.did;
+        document.getElementById('modo').value = 'edit';
         document.getElementById('usuario').value = usuario.usuario;
         document.getElementById('mail').value = usuario.mail;
         document.getElementById('habilitado').checked = usuario.habilitado == 1;
@@ -187,6 +189,7 @@ function abrirModal(usuario) {
     } else {
         document.getElementById('textoTitulo').textContent = 'Nuevo Administrador';
         document.getElementById('did').value = 0;
+        document.getElementById('modo').value = 'create';
         document.getElementById('habilitado').checked = true;
         
         // Password requerido al crear
@@ -203,6 +206,7 @@ async function guardarUsuario(event) {
     const btnGuardar = document.getElementById('btnGuardar');
     const originalText = btnGuardar.innerHTML;
     const did = parseInt(document.getElementById('did').value);
+    const modo = document.getElementById('modo').value;
     
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
@@ -219,7 +223,7 @@ async function guardarUsuario(event) {
             didMercado: null
         };
         
-        const url = did > 0 ? '<?= route('/usuarios/update') ?>' : '<?= route('/usuarios/create') ?>';
+        const url = (modo === 'edit') ? '<?= route('/usuarios/update') ?>' : '<?= route('/usuarios/create') ?>';
         
         const response = await fetch(url, {
             method: 'POST',
