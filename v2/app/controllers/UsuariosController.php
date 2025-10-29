@@ -211,10 +211,17 @@ class UsuariosController {
             View::json(['success' => false, 'message' => 'No autorizado'], 403);
         }
         
+        // Debug
+        $allData = Request::postAll();
+        error_log("UsuariosController::toggle - Datos recibidos: " . json_encode($allData));
+        
         $did = Request::post('did');
         $habilitado = Request::post('habilitado', 0);
         
-        if (empty($did)) {
+        error_log("UsuariosController::toggle - Parseado - did: '$did', habilitado: '$habilitado'");
+        
+        if (empty($did) || $did == '0' || $did == 0) {
+            error_log("UsuariosController::toggle - Validación falló - did vacío");
             View::json(['success' => false, 'message' => 'ID requerido'], 400);
         }
         
