@@ -8,11 +8,29 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Conectar directamente a la base de datos con credenciales locales
+// Conectar directamente a la base de datos
+// Intentar cargar desde .env primero
 $db_host = 'localhost';
 $db_user = 'root';
 $db_password = '';
 $db_name = 'mlgcapa_enc';
+
+// Cargar .env si existe
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0 || strpos($line, '=') === false) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        
+        if ($name === 'DB_HOST') $db_host = $value;
+        if ($name === 'DB_USER') $db_user = $value;
+        if ($name === 'DB_PASSWORD') $db_password = $value;
+        if ($name === 'DB_NAME') $db_name = $value;
+    }
+}
 
 try {
     $mysqli = new mysqli($db_host, $db_user, $db_password, $db_name);
