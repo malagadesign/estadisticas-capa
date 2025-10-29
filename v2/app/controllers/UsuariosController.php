@@ -176,9 +176,10 @@ class UsuariosController {
             View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
         }
         
-        // Validar did para edición
-        if (empty($did) || $did == '0' || $did == 0) {
-            error_log("UsuariosController::update - Validación falló - did vacío");
+        // Validar did para edición - convertir a entero
+        $did = is_numeric($did) ? (int)$did : null;
+        if ($did === null || $did < 0) {
+            error_log("UsuariosController::update - Validación falló - did inválido: '$did'");
             View::json(['success' => false, 'message' => 'ID requerido para editar'], 400);
         }
         
@@ -230,10 +231,14 @@ class UsuariosController {
         $did = Request::post('did');
         $habilitado = Request::post('habilitado', 0);
         
-        error_log("UsuariosController::toggle - Parseado - did: '$did', habilitado: '$habilitado'");
+        // Convertir a entero para validación
+        $did = is_numeric($did) ? (int)$did : null;
         
-        if (empty($did) || $did == '0' || $did == 0) {
-            error_log("UsuariosController::toggle - Validación falló - did vacío");
+        error_log("UsuariosController::toggle - Parseado - did: '$did' (tipo: " . gettype($did) . "), habilitado: '$habilitado'");
+        
+        // Validar: did debe ser un número mayor o igual a 0 (0 es válido para usuarios con did=0)
+        if ($did === null || $did < 0) {
+            error_log("UsuariosController::toggle - Validación falló - did inválido: '$did'");
             View::json(['success' => false, 'message' => 'ID requerido'], 400);
         }
         
@@ -267,7 +272,11 @@ class UsuariosController {
         
         $did = Request::post('did');
         
-        if (empty($did) || $did == '0' || $did == 0) {
+        // Convertir a entero para validación
+        $did = is_numeric($did) ? (int)$did : null;
+        
+        if ($did === null || $did < 0) {
+            error_log("UsuariosController::delete - Validación falló - did inválido: '$did'");
             View::json(['success' => false, 'message' => 'ID requerido'], 400);
         }
         

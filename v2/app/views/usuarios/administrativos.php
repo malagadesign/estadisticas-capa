@@ -67,7 +67,7 @@
                                                     </button>
                                                     <?php if ($usuario['did'] != Session::get('user_id')): ?>
                                                         <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
-                                                                onclick="toggleUsuario(<?= $usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
+                                                                onclick="toggleUsuario(<?= (int)$usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
                                                                 title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
                                                             <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
                                                         </button>
