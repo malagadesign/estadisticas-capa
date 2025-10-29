@@ -154,19 +154,31 @@ class UsuariosController {
             View::json(['success' => false, 'message' => 'No autorizado'], 403);
         }
         
+        // Debug
+        $allData = Request::postAll();
+        error_log("UsuariosController::update - Datos recibidos: " . json_encode($allData));
+        
         $did = Request::post('did');
-        $usuario = Request::clean(Request::post('usuario'));
-        $mail = Request::clean(Request::post('mail'));
+        $usuario = Request::post('usuario');
+        $mail = Request::post('mail');
         $password = Request::post('password');
         $habilitado = Request::post('habilitado', 1);
         
+        error_log("UsuariosController::update - Parseado - did: '$did', usuario: '$usuario', mail: '$mail', habilitado: '$habilitado'");
+        
+        // Limpiar después de obtener
+        $usuario = Request::clean($usuario);
+        $mail = Request::clean($mail);
+        
         // Validar campos básicos
         if (empty($usuario) || empty($mail)) {
+            error_log("UsuariosController::update - Validación falló - usuario: " . (empty($usuario) ? 'VACIO' : 'OK') . ", mail: " . (empty($mail) ? 'VACIO' : 'OK'));
             View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
         }
         
         // Validar did para edición
         if (empty($did) || $did == '0' || $did == 0) {
+            error_log("UsuariosController::update - Validación falló - did vacío");
             View::json(['success' => false, 'message' => 'ID requerido para editar'], 400);
         }
         
