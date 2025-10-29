@@ -49,6 +49,7 @@ class UsuariosController {
         $db = Database::getInstance();
         
         // Nota: En la BD el tipo es 'socio' (5 letras), no 'soc'
+        // Filtrar por superado=0 y elim=0 para no mostrar duplicados
         $usuarios = $db->fetchAll(
             "SELECT * FROM usuarios 
              WHERE TRIM(tipo) = 'socio' 
