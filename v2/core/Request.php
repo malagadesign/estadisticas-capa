@@ -44,19 +44,23 @@ class Request {
      */
     public static function post($key, $default = null) {
         // Si viene JSON, parsearlo una vez
-        static $jsonData = null;
-        if ($jsonData === null && self::isPost()) {
+        static $jsonParsed = false;
+        if (!$jsonParsed && self::isPost()) {
             $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
             if (strpos($contentType, 'application/json') !== false) {
                 $rawInput = file_get_contents('php://input');
+                error_log("Request::post - JSON recibido: " . $rawInput);
+                
                 $jsonData = json_decode($rawInput, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($jsonData)) {
-                    // Fusionar con $_POST por si hay datos mixtos
+                    // Fusionar con $_POST (JSON tiene prioridad)
                     $_POST = array_merge($_POST, $jsonData);
+                    error_log("Request::post - JSON parseado correctamente: " . json_encode($_POST));
+                } else {
+                    error_log("Request::post - Error parseando JSON: " . json_last_error_msg());
                 }
-            } else {
-                $jsonData = [];
             }
+            $jsonParsed = true;
         }
         
         return $_POST[$key] ?? $default;
@@ -73,8 +77,18 @@ class Request {
      * Obtener todos los POST (soporta JSON)
      */
     public static function postAll() {
-        // Forzar parseo de JSON si existe
-        self::post('_force_parse');
+        // Forzar parseo de JSON si existe (llamando post con cualquier key)
+        if (self::isPost()) {
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (strpos($contentType, 'application/json') !== false && !isset($_POST['_json_parsed'])) {
+                $rawInput = file_get_contents('php://input');
+                $jsonData = json_decode($rawInput, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($jsonData)) {
+                    $_POST = array_merge($_POST, $jsonData);
+                    $_POST['_json_parsed'] = true;
+                }
+            }
+        }
         return $_POST;
     }
     

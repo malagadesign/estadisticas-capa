@@ -77,14 +77,25 @@ class UsuariosController {
             View::json(['success' => false, 'message' => 'No autorizado'], 403);
         }
         
+        // Debug: Log de datos recibidos
+        $allData = Request::postAll();
+        error_log("UsuariosController::create - Datos recibidos: " . json_encode($allData));
+        
         $tipo = Request::post('tipo'); // 'adm' o 'socio'
-        $usuario = Request::clean(Request::post('usuario'));
-        $mail = Request::clean(Request::post('mail'));
+        $usuario = Request::post('usuario');
+        $mail = Request::post('mail');
         $password = Request::post('password');
         $habilitado = Request::post('habilitado', 1);
         
+        error_log("UsuariosController::create - Parseado - tipo: '$tipo', usuario: '$usuario', mail: '$mail', habilitado: '$habilitado'");
+        
+        // Limpiar después de obtener
+        $usuario = Request::clean($usuario);
+        $mail = Request::clean($mail);
+        
         // Validaciones
         if (empty($usuario) || empty($mail)) {
+            error_log("UsuariosController::create - Validación falló - usuario: " . (empty($usuario) ? 'VACIO' : 'OK') . ", mail: " . (empty($mail) ? 'VACIO' : 'OK'));
             View::json(['success' => false, 'message' => 'Usuario y email son requeridos'], 400);
         }
         
