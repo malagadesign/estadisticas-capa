@@ -61,17 +61,29 @@ class Router {
         // Remover /index.php del path si está presente
         $url = str_replace('/index.php', '', $url);
         
+        // Normalizar: remover doble slash y normalizar
+        $url = preg_replace('#/+#', '/', $url);
+        
         // Si la URL está vacía, ponerla como /
-        if (empty($url)) {
+        if (empty($url) || $url === '/') {
             $url = '/';
         }
         
-        // DEBUGGING: Agregar /v2 al path para que matchee
-        $url = '/v2' . $url;
+        // Si la URL ya tiene /v2/, usarla tal cual
+        // Si no tiene /v2/, agregarlo
+        if (strpos($url, '/v2') === 0) {
+            // Ya tiene /v2/, usar tal cual
+        } else {
+            // No tiene /v2/, agregarlo
+            $url = '/v2' . (strpos($url, '/') === 0 ? '' : '/') . ltrim($url, '/');
+        }
+        
+        error_log("Router dispatch - URL procesada: $url, Method: $method");
         
         foreach ($this->routes as $route) {
             if ($route['method'] === $method) {
                 if (preg_match($route['pattern'], $url, $matches)) {
+                    error_log("Router - Matched route: {$route['path']} -> {$route['handler']}");
                     // Extraer parámetros
                     foreach ($matches as $key => $value) {
                         if (is_string($key)) {
@@ -83,6 +95,8 @@ class Router {
                 }
             }
         }
+        
+        error_log("Router - No route matched for: $url ($method)");
         
         // 404
         http_response_code(404);
