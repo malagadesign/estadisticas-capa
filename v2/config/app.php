@@ -117,10 +117,21 @@ function asset($path) {
 
 // Helper para rutas
 function route($path) {
-    // Con Apache y .htaccess, las URLs son limpias
+    // Agregar prefijo /v2/ a todas las rutas excepto si ya lo tiene
+    $basePath = '/v2';
+    
     if ($path === '/') {
-        return APP_URL . '/';
+        return APP_URL . $basePath . '/';
     }
-    return APP_URL . $path;
+    
+    // Si el path ya empieza con /v2, no duplicar
+    if (strpos($path, '/v2') === 0) {
+        return APP_URL . $path;
+    }
+    
+    // Asegurar que el path empiece con /
+    $path = '/' . ltrim($path, '/');
+    
+    return APP_URL . $basePath . $path;
 }
 
