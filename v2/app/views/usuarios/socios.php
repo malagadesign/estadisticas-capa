@@ -55,12 +55,12 @@
                                             </td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-capa-purpura me-1" 
-                                                        onclick='abrirModal(<?= json_encode($usuario, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>)' 
+                                                        onclick="abrirModal(<?= htmlspecialchars(json_encode($usuario), ENT_QUOTES, 'UTF-8') ?>)" 
                                                         title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-<?= $usuario['habilitado'] ? 'warning' : 'success' ?>" 
-                                                        onclick="toggleUsuario(<?= $usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
+                                                        onclick="toggleUsuario(<?= (int)$usuario['did'] ?>, <?= $usuario['habilitado'] ? 0 : 1 ?>)"
                                                         title="<?= $usuario['habilitado'] ? 'Deshabilitar' : 'Habilitar' ?>">
                                                     <i class="fas fa-<?= $usuario['habilitado'] ? 'ban' : 'check' ?>"></i>
                                                 </button>
@@ -159,6 +159,7 @@ function abrirModal(usuario) {
     const passwordInput = document.getElementById('password');
     const requeridoPassword = document.getElementById('requeridoPassword');
     const textoPassword = document.getElementById('textoPassword');
+    try { console.log('abrirModal(socio):', usuario); } catch (e) {}
     
     if (usuario) {
         document.getElementById('textoTitulo').textContent = 'Editar Socio';
@@ -182,6 +183,16 @@ function abrirModal(usuario) {
         passwordInput.required = true;
         requeridoPassword.style.display = 'inline';
         textoPassword.style.display = 'none';
+    }
+    
+    try {
+        if (!modalUsuario) {
+            modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
+        }
+        modalUsuario.show();
+    } catch (e) {
+        console.error('Error mostrando modal socio:', e);
+        try { new bootstrap.Modal(document.getElementById('modalUsuario')).show(); } catch (_) {}
     }
 }
 
