@@ -45,17 +45,19 @@ class Request {
     public static function post($key, $default = null) {
         // Si viene JSON, parsearlo una vez
         static $jsonParsed = false;
+        static $jsonData = null;
+        
         if (!$jsonParsed && self::isPost()) {
             $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
             if (strpos($contentType, 'application/json') !== false) {
                 $rawInput = file_get_contents('php://input');
-                error_log("Request::post - JSON recibido: " . $rawInput);
+                error_log("Request::post - JSON raw recibido: " . substr($rawInput, 0, 200));
                 
                 $jsonData = json_decode($rawInput, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($jsonData)) {
                     // Fusionar con $_POST (JSON tiene prioridad)
                     $_POST = array_merge($_POST, $jsonData);
-                    error_log("Request::post - JSON parseado correctamente: " . json_encode($_POST));
+                    error_log("Request::post - JSON parseado OK, POST ahora tiene: " . json_encode(array_keys($_POST)));
                 } else {
                     error_log("Request::post - Error parseando JSON: " . json_last_error_msg());
                 }
@@ -63,7 +65,8 @@ class Request {
             $jsonParsed = true;
         }
         
-        return $_POST[$key] ?? $default;
+        $value = $_POST[$key] ?? $default;
+        return $value;
     }
     
     /**
