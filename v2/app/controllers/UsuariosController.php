@@ -51,10 +51,10 @@ class UsuariosController {
         // Nota: En la BD el tipo es 'socio' (5 letras), no 'soc'
         $usuarios = $db->fetchAll(
             "SELECT * FROM usuarios 
-             WHERE tipo = 'socio' 
+             WHERE TRIM(tipo) = 'socio' 
              AND superado = 0 
              AND elim = 0 
-             ORDER BY usuario ASC"
+             ORDER BY did DESC, usuario ASC"
         );
         
         $mercados = $db->fetchAll(
