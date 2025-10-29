@@ -23,12 +23,13 @@ class UsuariosController {
         }
         
         $db = Database::getInstance();
+        // Usar TRIM para evitar problemas por espacios en 'tipo' y ordenar por did descendente (usuarios recientes primero)
         $usuarios = $db->fetchAll(
             "SELECT * FROM usuarios 
-             WHERE tipo = 'adm' 
+             WHERE TRIM(tipo) = 'adm' 
              AND superado = 0 
              AND elim = 0 
-             ORDER BY usuario ASC"
+             ORDER BY did DESC, usuario ASC"
         );
         
         View::render('usuarios/administrativos', [
