@@ -105,6 +105,10 @@ class UsuariosController {
             $password = 'temp_' . uniqid(); // Contraseña temporal
         }
         
+        // Si no vino tipo (por ejemplo, request parcial), asumir 'adm' en esta vista
+        if (empty($tipo)) {
+            $tipo = 'adm';
+        }
         if (!in_array($tipo, ['adm', 'socio'])) {
             View::json(['success' => false, 'message' => 'Tipo de usuario inválido'], 400);
         }
@@ -126,18 +130,19 @@ class UsuariosController {
         }
         
         try {
-            // Hash de contraseña
+            // Hash de contraseña y token auxiliar (columna hash)
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+            $auxHash = bin2hex(random_bytes(16));
             
             // Calcular próximo DID único (evita colisión con índice unique_did)
             $nextDidRow = $db->fetchOne("SELECT COALESCE(MAX(did), 0) + 1 AS nextDid FROM usuarios");
             $nextDid = (int)($nextDidRow['nextDid'] ?? 1);
             
-            // Insertar seteando DID explícitamente
+            // Insertar seteando DID explícitamente (incluye columna hash)
             $db->insert(
-                "INSERT INTO usuarios (did, usuario, mail, psw, tipo, habilitado, superado, elim, quien) 
-                 VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)",
-                ['isssiii', $nextDid, $usuario, $mail, $passwordHash, $tipo, $habilitado, Session::get('user_id', 0)]
+                "INSERT INTO usuarios (did, usuario, mail, psw, `hash`, tipo, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?)",
+                ['isssssii', $nextDid, $usuario, $mail, $passwordHash, $auxHash, $tipo, $habilitado, Session::get('user_id', 0)]
             );
             
             View::json(['success' => true, 'message' => 'Usuario creado correctamente']);
