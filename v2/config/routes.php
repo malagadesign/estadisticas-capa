@@ -27,6 +27,7 @@ $router->get('/encuestas/anteriores', 'EncuestasController@anteriores');
 $router->post('/encuestas/guardar-precio', 'EncuestasController@guardarPrecio');
 $router->post('/encuestas/upload-excel', 'EncuestasController@uploadExcel');
 $router->post('/encuestas/toggle-articulo', 'EncuestasController@toggleArticulo');
+$router->get('/encuestas/articulos', 'EncuestasController@getArticulosPorFamilia'); // Nueva: carga diferida
 
 // ===============================================
 // USUARIOS (Solo Admin) - MIGRADO DE V1

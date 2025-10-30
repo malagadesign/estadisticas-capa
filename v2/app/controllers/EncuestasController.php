@@ -231,5 +231,50 @@ class EncuestasController {
     public function uploadExcel() {
         View::json(['success' => false, 'message' => 'Funcionalidad en desarrollo'], 501);
     }
+    
+    /**
+     * Cargar artículos por familia (Carga diferida - AJAX)
+     */
+    public function getArticulosPorFamilia() {
+        // Verificar autenticación
+        if (!Session::isLoggedIn()) {
+            View::json(['success' => false, 'message' => 'No autenticado'], 401);
+        }
+        
+        $familiaDid = Request::get('familiaDid');
+        
+        if (!$familiaDid) {
+            View::json(['success' => false, 'message' => 'Familia no especificada'], 400);
+        }
+        
+        try {
+            $articuloModel = new Articulo();
+            $articulos = $articuloModel->getByFamilia($familiaDid);
+            
+            // Si es socio, obtener también los artículos deshabilitados
+            $articulosDeshabilitados = [];
+            if (!Session::isAdmin()) {
+                $encuestaModel = new Encuesta();
+                $articulosDeshabilitados = $encuestaModel->getArticulosDeshabilitadosPorSocio(Session::userId());
+            }
+            
+            // Formatear respuesta
+            $response = [];
+            foreach ($articulos as $articulo) {
+                $deshabilitado = isset($articulosDeshabilitados[$articulo['did']]);
+                $response[] = [
+                    'did' => $articulo['did'],
+                    'nombre' => $articulo['nombre'],
+                    'didFamilia' => $articulo['didFamilia'],
+                    'deshabilitado' => $deshabilitado
+                ];
+            }
+            
+            View::json(['success' => true, 'articulos' => $response]);
+        } catch (Exception $e) {
+            error_log("Error cargando artículos por familia: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al cargar artículos'], 500);
+        }
+    }
 }
 
