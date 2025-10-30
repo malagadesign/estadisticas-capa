@@ -256,6 +256,178 @@ async function cfgToggle(didArticulo, checkbox) {
         showToast('Error de conexión', 'danger');
     }
 }
+
+// ============================================
+// TAB 2: Carga de Datos
+// ============================================
+const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
+const mercados = <?= json_encode($mercados) ?>;
+const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
+const montosYaCargados = <?= json_encode($montosYaCargados) ?>;
+const encuestaDid = <?= $encuesta['did'] ?>;
+const csrfToken = '<?= csrf_token() ?>';
+let articulosPorFamilia = {}; // Se carga por demanda
+
+// Cargar montos previos en los inputs
+document.addEventListener('DOMContentLoaded', function() {
+    for (let key in montosYaCargados) {
+        const input = document.querySelector(`input[data-key="${key}"]`);
+        if (input) {
+            input.value = montosYaCargados[key];
+        }
+    }
+});
+
+function cargarFamilias() {
+    const rubroDid = document.getElementById('select-rubro').value;
+    const selectFamilia = document.getElementById('select-familia');
+    const selectArticulo = document.getElementById('select-articulo');
+    
+    // Reset
+    selectFamilia.innerHTML = '<option value="">Seleccione una familia...</option>';
+    selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
+    selectFamilia.disabled = true;
+    selectArticulo.disabled = true;
+    document.getElementById('formulario-carga').style.display = 'none';
+    document.getElementById('mensaje-inicial').style.display = 'block';
+    
+    if (!rubroDid) return;
+    
+    // Cargar familias
+    const familias = familiasPorRubro[rubroDid] || [];
+    if (familias.length > 0) {
+        familias.forEach(familia => {
+            const option = document.createElement('option');
+            option.value = familia.did;
+            option.textContent = familia.nombre;
+            selectFamilia.appendChild(option);
+        });
+        selectFamilia.disabled = false;
+    }
+}
+
+async function cargarArticulos() {
+    const familiaDid = document.getElementById('select-familia').value;
+    const selectArticulo = document.getElementById('select-articulo');
+    
+    // Reset
+    selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
+    selectArticulo.disabled = true;
+    document.getElementById('formulario-carga').style.display = 'none';
+    document.getElementById('mensaje-inicial').style.display = 'block';
+    
+    if (!familiaDid) return;
+    
+    try {
+        // Cargar artículos de la familia por AJAX
+        const resp = await fetch(`<?= route('/encuestas/articulos') ?>?familiaDid=${familiaDid}`);
+        const data = await resp.json();
+        
+        if (data.success && data.articulos) {
+            articulosPorFamilia[familiaDid] = data.articulos;
+            
+            // Cargar artículos en el select
+            const articulos = data.articulos || [];
+            if (articulos.length > 0) {
+                articulos.forEach(articulo => {
+                    // Filtrar artículos deshabilitados
+                    if (!articulosDeshabilitados[articulo.did]) {
+                        const option = document.createElement('option');
+                        option.value = articulo.did;
+                        option.textContent = articulo.nombre;
+                        selectArticulo.appendChild(option);
+                    }
+                });
+                selectArticulo.disabled = false;
+            }
+        }
+    } catch (e) {
+        console.error('Error al cargar artículos:', e);
+        document.getElementById('mensaje-inicial').innerHTML = 
+            '<div class="alert alert-danger">Error al cargar artículos. Por favor, intente nuevamente.</div>';
+    }
+}
+
+function mostrarFormularioCarga() {
+    const articuloDid = document.getElementById('select-articulo').value;
+    
+    if (!articuloDid) {
+        document.getElementById('formulario-carga').style.display = 'none';
+        document.getElementById('mensaje-inicial').style.display = 'block';
+        return;
+    }
+    
+    // Obtener nombre del artículo
+    const selectArticulo = document.getElementById('select-articulo');
+    const articuloNombre = selectArticulo.options[selectArticulo.selectedIndex].text;
+    
+    document.getElementById('articulo-seleccionado').textContent = articuloNombre;
+    document.getElementById('mensaje-inicial').style.display = 'none';
+    document.getElementById('formulario-carga').style.display = 'block';
+    
+    // Generar tabla de precios
+    const tbody = document.getElementById('tabla-precios');
+    tbody.innerHTML = '';
+    
+    // Fila para "Venta"
+    const trVenta = document.createElement('tr');
+    trVenta.innerHTML = '<td><strong>Precio de Venta</strong></td>';
+    
+    for (let mercadoDid in mercados) {
+        const td = document.createElement('td');
+        const key = `${articuloDid}-${mercadoDid}-venta`;
+        const valor = montosYaCargados[key] || '';
+        
+        td.innerHTML = `
+            <input 
+                type="number" 
+                class="form-control" 
+                data-key="${key}"
+                value="${valor}"
+                step="0.01"
+                onblur="guardarPrecio(${articuloDid}, ${mercadoDid}, 'venta')"
+                placeholder="0.00"
+            >
+        `;
+        trVenta.appendChild(td);
+    }
+    
+    tbody.appendChild(trVenta);
+}
+
+// Guardar precio
+async function guardarPrecio(articuloDid, mercadoDid, tipo) {
+    const key = `${articuloDid}-${mercadoDid}-${tipo}`;
+    const input = document.querySelector(`input[data-key="${key}"]`);
+    
+    if (!input) return;
+    
+    const monto = input.value;
+    
+    try {
+        const response = await fetchCapa('<?= route('/encuestas/guardar-precio') ?>', {
+            method: 'POST',
+            body: JSON.stringify({
+                csrf_token: csrfToken,
+                encuestaDid: encuestaDid,
+                articuloDid: articuloDid,
+                mercadoDid: mercadoDid,
+                tipo: tipo,
+                monto: monto
+            })
+        });
+        
+        if (response.success) {
+            input.classList.add('is-valid');
+            setTimeout(() => input.classList.remove('is-valid'), 2000);
+        } else {
+            showToast(response.message || 'Error al guardar', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error al guardar el precio', 'danger');
+    }
+}
     </script>
     <?php endif; ?>
 
