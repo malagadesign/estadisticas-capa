@@ -85,7 +85,10 @@ class EncuestasController {
         
         if ($isAdmin) {
             // Admin: ver artículos no incluidos por socios
+            $startTime = microtime(true);
             $articulosNoIncluidos = $encuestaModel->getArticulosNoIncluidosPorSocios();
+            $elapsedTime = round((microtime(true) - $startTime) * 1000, 2);
+            error_log("DEBUG admin - getArticulosNoIncluidosPorSocios(): Tardó {$elapsedTime}ms, cantidad: " . count($articulosNoIncluidos));
         } else {
             // Socio: cargar sus datos
             $articulosDeshabilitados = $encuestaModel->getArticulosDeshabilitadosPorSocio($userId);
