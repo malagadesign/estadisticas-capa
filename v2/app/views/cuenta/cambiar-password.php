@@ -1,8 +1,12 @@
 <?php
+$content = ob_get_contents();
+ob_clean();
+
 // Layout
 $layout = 'admin';
-$title = $title ?? 'Cambiar Contraseña - CAPA';
-include __DIR__ . '/../layouts/main.php';
+$title = 'Cambiar Contraseña - CAPA';
+
+ob_start();
 ?>
 
 <div class="container-fluid py-4">
@@ -170,6 +174,5 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php
 $content = ob_get_clean();
 include __DIR__ . '/../layouts/main.php';
-exit;
 ?>
 
