@@ -1,12 +1,6 @@
 <?php
-$content = ob_get_contents();
-ob_clean();
-
-// Layout
-$layout = 'base';
-$title = 'Cambiar Contraseña - CAPA';
-
-ob_start();
+// Esta vista NO debe incluir el layout manualmente
+// El View::render se encarga de eso
 ?>
 
 <div class="container-fluid py-4">
@@ -170,9 +164,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-<?php
-$content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php';
-?>
 
