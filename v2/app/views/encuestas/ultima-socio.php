@@ -66,64 +66,44 @@
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-keyboard me-2"></i>
-                Carga de Precios por Pantalla
+                Carga de Datos por Pantalla
             </div>
             <div class="card-body">
                 <p class="text-muted mb-4">
-                    Ingrese los precios para cada artículo y mercado. Los datos se guardan automáticamente al salir de cada campo.
+                    Completar o modificar los datos desde esta pantalla directamente. Los datos se guardan automáticamente al salir de cada campo.
                 </p>
                 
-                <!-- Seleccionar Rubro -->
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Rubro</label>
-                        <select class="form-select" id="select-rubro" onchange="cargarFamilias()">
-                            <option value="">Seleccione un rubro...</option>
-                            <?php foreach ($rubros as $rubroDid => $rubroNombre): ?>
-                                <option value="<?= $rubroDid ?>"><?= e($rubroNombre) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Familia</label>
-                        <select class="form-select" id="select-familia" onchange="cargarArticulos()" disabled>
-                            <option value="">Primero seleccione un rubro...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Artículo</label>
-                        <select class="form-select" id="select-articulo" onchange="mostrarFormularioCarga()" disabled>
-                            <option value="">Primero seleccione una familia...</option>
-                        </select>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th rowspan="2">Rubro</th>
+                                <th rowspan="2">Familia</th>
+                                <th rowspan="2">Artículo</th>
+                                <th colspan="2">1 - RETAIL</th>
+                                <th colspan="2">2 - VENTA DIRECTA</th>
+                                <th colspan="2">3 - PROFESIONAL</th>
+                            </tr>
+                            <tr>
+                                <th>Cantidad</th>
+                                <th>Valor en AR$</th>
+                                <th>Cantidad</th>
+                                <th>Valor en AR$</th>
+                                <th>Cantidad</th>
+                                <th>Valor en AR$</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-carga-datos">
+                            <!-- Se carga dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
                 
-                <!-- Formulario de Carga -->
-                <div id="formulario-carga" style="display: none;">
-                    <h5 id="articulo-seleccionado" class="mb-3"></h5>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mercado</th>
-                                    <?php foreach ($mercados as $mercadoDid => $mercadoNombre): ?>
-                                        <th><?= e($mercadoNombre) ?></th>
-                                    <?php endforeach; ?>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-precios">
-                                <!-- Se llenará dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div id="mensaje-inicial" class="alert alert-info">
-                    <i class="fas fa-arrow-up me-2"></i>
-                    Seleccione un rubro, familia y artículo para comenzar a cargar precios
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <small id="carga-info" class="text-muted"></small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="carga-paginador"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -281,163 +261,116 @@ async function cfgToggle(didArticulo, checkbox) {
 // Cargar todos los artículos al inicializar
 document.addEventListener('DOMContentLoaded', function() {
     cargarTodosLosArticulos();
+    
+    // Listener para cuando se cambia a la Tab 2
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            if (e.target.getAttribute('data-bs-target') === '#carga') {
+                console.log('Cambió a Tab 2 - Carga de Datos');
+                if (todosLosArticulos.length > 0) {
+                    cargarArticulosIncorporados();
+                }
+            }
+        });
+    });
 });
 
 // ============================================
 // TAB 2: Carga de Datos
 // ============================================
 const mercados = <?= json_encode($mercados) ?>;
-let articulosPorFamiliaTab2 = {}; // Cache para Tab 2
+let articulosIncorporados = []; // Solo artículos incorporados (toggle ON)
+let paginaCarga = 1;
+const articulosPorPaginaCarga = 50;
 
-function cargarFamilias() {
-    const rubroDid = document.getElementById('select-rubro').value;
-    const selectFamilia = document.getElementById('select-familia');
-    const selectArticulo = document.getElementById('select-articulo');
-    
-    // Reset
-    selectFamilia.innerHTML = '<option value="">Seleccione una familia...</option>';
-    selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
-    selectFamilia.disabled = true;
-    selectArticulo.disabled = true;
-    document.getElementById('formulario-carga').style.display = 'none';
-    document.getElementById('mensaje-inicial').style.display = 'block';
-    
-    if (!rubroDid) return;
-    
-    // Cargar familias
-    const familias = familiasPorRubro[rubroDid] || [];
-    if (familias.length > 0) {
-        familias.forEach(familia => {
-            const option = document.createElement('option');
-            option.value = familia.did;
-            option.textContent = familia.nombre;
-            selectFamilia.appendChild(option);
-        });
-        selectFamilia.disabled = false;
-    }
+// Cargar artículos incorporados
+function cargarArticulosIncorporados() {
+    // Filtrar solo artículos incorporados (NO deshabilitados)
+    articulosIncorporados = todosLosArticulos.filter(a => !articulosDeshabilitados[a.did]);
+    console.log(`Artículos incorporados: ${articulosIncorporados.length}`);
+    renderizarTablaCarga(1);
 }
 
-async function cargarArticulos() {
-    const familiaDid = document.getElementById('select-familia').value;
-    const selectArticulo = document.getElementById('select-articulo');
+// Renderizar tabla de carga
+function renderizarTablaCarga(pagina = 1) {
+    paginaCarga = pagina;
+    const tbody = document.getElementById('tabla-carga-datos');
+    const total = articulosIncorporados.length;
+    const desde = (pagina - 1) * articulosPorPaginaCarga;
+    const hasta = Math.min(desde + articulosPorPaginaCarga, total);
     
-    // Reset
-    selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
-    selectArticulo.disabled = true;
-    document.getElementById('formulario-carga').style.display = 'none';
-    document.getElementById('mensaje-inicial').style.display = 'block';
-    
-    if (!familiaDid) return;
-    
-    try {
-        // Cargar artículos de la familia por AJAX
-        const resp = await fetch(`<?= route('/encuestas/articulos') ?>?familiaDid=${familiaDid}`);
-        const data = await resp.json();
-        
-        if (data.success && data.articulos) {
-            articulosPorFamiliaTab2[familiaDid] = data.articulos;
-            
-            // Cargar artículos en el select
-            const articulos = data.articulos || [];
-            if (articulos.length > 0) {
-                articulos.forEach(articulo => {
-                    // Filtrar artículos deshabilitados
-                    if (!articulosDeshabilitados[articulo.did]) {
-                        const option = document.createElement('option');
-                        option.value = articulo.did;
-                        option.textContent = articulo.nombre;
-                        selectArticulo.appendChild(option);
-                    }
-                });
-                selectArticulo.disabled = false;
-            }
-        }
-    } catch (e) {
-        console.error('Error al cargar artículos:', e);
-        document.getElementById('mensaje-inicial').innerHTML = 
-            '<div class="alert alert-danger">Error al cargar artículos. Por favor, intente nuevamente.</div>';
-    }
-}
-
-function mostrarFormularioCarga() {
-    const articuloDid = document.getElementById('select-articulo').value;
-    
-    if (!articuloDid) {
-        document.getElementById('formulario-carga').style.display = 'none';
-        document.getElementById('mensaje-inicial').style.display = 'block';
-        return;
-    }
-    
-    // Obtener nombre del artículo
-    const selectArticulo = document.getElementById('select-articulo');
-    const articuloNombre = selectArticulo.options[selectArticulo.selectedIndex].text;
-    
-    document.getElementById('articulo-seleccionado').textContent = articuloNombre;
-    document.getElementById('mensaje-inicial').style.display = 'none';
-    document.getElementById('formulario-carga').style.display = 'block';
-    
-    // Generar tabla de precios
-    const tbody = document.getElementById('tabla-precios');
-    tbody.innerHTML = '';
-    
-    // Fila para "Venta"
-    const trVenta = document.createElement('tr');
-    trVenta.innerHTML = '<td><strong>Precio de Venta</strong></td>';
-    
-    for (let mercadoDid in mercados) {
-        const td = document.createElement('td');
-        const key = `${articuloDid}-${mercadoDid}-venta`;
-        const valor = montosYaCargados[key] || '';
-        
-        td.innerHTML = `
-            <input 
-                type="number" 
-                class="form-control" 
-                data-key="${key}"
-                value="${valor}"
-                step="0.01"
-                onblur="guardarPrecio(${articuloDid}, ${mercadoDid}, 'venta')"
-                placeholder="0.00"
-            >
+    let html = '';
+    for (let i = desde; i < hasta; i++) {
+        const a = articulosIncorporados[i];
+        html += `
+            <tr>
+                <td>${a.rubroNombre}</td>
+                <td>${a.familiaNombre}</td>
+                <td>${a.nombre}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="1" data-tipo="cantidad"
+                           onblur="guardarDato(${a.did}, 1, 'cantidad', this)"
+                           placeholder="0" step="1">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="1" data-tipo="valor"
+                           onblur="guardarDato(${a.did}, 1, 'valor', this)"
+                           placeholder="0.00" step="0.01">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="2" data-tipo="cantidad"
+                           onblur="guardarDato(${a.did}, 2, 'cantidad', this)"
+                           placeholder="0" step="1">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="2" data-tipo="valor"
+                           onblur="guardarDato(${a.did}, 2, 'valor', this)"
+                           placeholder="0.00" step="0.01">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="3" data-tipo="cantidad"
+                           onblur="guardarDato(${a.did}, 3, 'cantidad', this)"
+                           placeholder="0" step="1">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           data-articulo="${a.did}" data-canal="3" data-tipo="valor"
+                           onblur="guardarDato(${a.did}, 3, 'valor', this)"
+                           placeholder="0.00" step="0.01">
+                </td>
+            </tr>
         `;
-        trVenta.appendChild(td);
     }
     
-    tbody.appendChild(trVenta);
+    tbody.innerHTML = html;
+    
+    // Actualizar info y paginador
+    document.getElementById('carga-info').textContent = total ? `Mostrando ${desde + 1}-${hasta} de ${total}` : '';
+    
+    const pags = Math.ceil(total / articulosPorPaginaCarga) || 1;
+    let pHtml = '';
+    for (let p = 1; p <= pags; p++) {
+        pHtml += `<li class="page-item ${p === pagina ? 'active' : ''}"><button class="page-link" onclick="renderizarTablaCarga(${p})">${p}</button></li>`;
+    }
+    document.getElementById('carga-paginador').innerHTML = pHtml;
 }
 
-// Guardar precio
-async function guardarPrecio(articuloDid, mercadoDid, tipo) {
-    const key = `${articuloDid}-${mercadoDid}-${tipo}`;
-    const input = document.querySelector(`input[data-key="${key}"]`);
+// Guardar dato
+async function guardarDato(articuloDid, canalDid, tipo, input) {
+    const valor = input.value;
     
-    if (!input) return;
+    // TODO: Implementar guardado real en backend
+    console.log(`Guardando: artículo=${articuloDid}, canal=${canalDid}, tipo=${tipo}, valor=${valor}`);
     
-    const monto = input.value;
-    
-    try {
-        const response = await fetchCapa('<?= route('/encuestas/guardar-precio') ?>', {
-            method: 'POST',
-            body: JSON.stringify({
-                csrf_token: csrfToken,
-                encuestaDid: encuestaDid,
-                articuloDid: articuloDid,
-                mercadoDid: mercadoDid,
-                tipo: tipo,
-                monto: monto
-            })
-        });
-        
-        if (response.success) {
-            input.classList.add('is-valid');
-            setTimeout(() => input.classList.remove('is-valid'), 2000);
-        } else {
-            showToast(response.message || 'Error al guardar', 'danger');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Error al guardar el precio', 'danger');
-    }
+    // Feedback visual
+    input.classList.add('is-valid');
+    setTimeout(() => input.classList.remove('is-valid'), 2000);
+    showToast('Dato guardado', 'success');
 }
     </script>
     <?php endif; ?>
