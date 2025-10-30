@@ -9,7 +9,7 @@ class CuentaController {
      * Vista para cambiar contraseña
      */
     public function cambiarPassword() {
-        if (!Session::isLogged()) {
+        if (!Session::isLoggedIn()) {
             View::redirect('/', 'Debe iniciar sesión', 'warning');
         }
         
@@ -22,7 +22,7 @@ class CuentaController {
      * Actualizar contraseña
      */
     public function updatePassword() {
-        if (!Session::isLogged()) {
+        if (!Session::isLoggedIn()) {
             View::json(['success' => false, 'message' => 'No autorizado'], 403);
         }
         
