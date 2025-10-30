@@ -161,7 +161,7 @@
 <script>
 // Datos para los selectores
 const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
-const articulosPorFamilia = <?= json_encode($articulosPorFamilia) ?>;
+// articulosPorFamilia ya NO se carga aquí - se carga por demanda via AJAX
 const mercados = <?= json_encode($mercados) ?>;
 const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
 

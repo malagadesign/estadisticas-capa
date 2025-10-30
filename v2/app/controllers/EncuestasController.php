@@ -67,15 +67,9 @@ class EncuestasController {
             $familiasPorRubro[$familia['didRubro']][] = $familia;
         }
         
+        // NO precargar artículos - se cargarán por demanda via AJAX
         $articulosArray = [];
-        $articulosPorFamilia = [];
-        foreach ($articulos as $articulo) {
-            $articulosArray[$articulo['did']] = [
-                'nombre' => $articulo['nombre'],
-                'familiaDid' => $articulo['didFamilia']
-            ];
-            $articulosPorFamilia[$articulo['didFamilia']][] = $articulo;
-        }
+        $articulosPorFamilia = []; // Vacío - se carga por demanda
         
         $mercadosArray = [];
         foreach ($mercados as $mercado) {
