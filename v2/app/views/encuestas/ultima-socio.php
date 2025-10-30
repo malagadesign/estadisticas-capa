@@ -33,40 +33,29 @@
                     Los artículos desmarcados <strong>NO</strong> aparecerán en la carga de datos.
                 </p>
                 
-                <?php foreach ($rubros as $rubroDid => $rubroNombre): ?>
-                    <div class="accordion mb-3" id="accordion-rubro-<?= $rubroDid ?>">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-rubro-<?= $rubroDid ?>">
-                                    <i class="fas fa-th-large me-2"></i>
-                                    <strong><?= e($rubroNombre) ?></strong>
-                                </button>
-                            </h2>
-                            <div id="collapse-rubro-<?= $rubroDid ?>" class="accordion-collapse collapse" data-bs-parent="#accordion-rubro-<?= $rubroDid ?>">
-                                <div class="accordion-body">
-                                    <?php if (isset($familiasPorRubro[$rubroDid])): ?>
-                                        <?php foreach ($familiasPorRubro[$rubroDid] as $familia): ?>
-                                            <div class="mb-4">
-                                                <h6 class="text-primary">
-                                                    <i class="fas fa-layer-group me-2"></i>
-                                                    <?= e($familia['nombre']) ?>
-                                                </h6>
-                                                <div id="articulos-familia-<?= $familia['did'] ?>" class="articulos-container">
-                                                    <div class="text-muted">
-                                                        <i class="fas fa-spinner fa-spin me-2"></i>
-                                                        Cargando artículos...
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <p class="text-muted">No hay familias en este rubro</p>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Rubro</th>
+                                <th>Familia</th>
+                                <th>Artículo</th>
+                                <th class="text-center">Incorporar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articulos-tbody">
+                            <!-- Se carga dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <small id="articulos-info" class="text-muted"></small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="articulos-paginador"></ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -147,64 +136,114 @@
 // Estado
 const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
 const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
+const rubros = <?= json_encode($rubros) ?>;
 const montosYaCargados = <?= json_encode($montosYaCargados) ?>;
 const encuestaDid = <?= $encuesta['did'] ?>;
 const csrfToken = '<?= csrf_token() ?>';
-let articulosPorFamilia = {}; // Cache de artículos cargados
 
-// Cargar artículos de una familia
-async function cfgCargarArticulos(familiaDid) {
-    const container = document.getElementById(`articulos-familia-${familiaDid}`);
-    if (!container) return;
-    
-    // Ya cargados? Usar cache
-    if (articulosPorFamilia[familiaDid]) {
-        cfgRenderArticulos(familiaDid);
-        return;
-    }
+let todosLosArticulos = []; // Array con todos los artículos
+let articulosPorRubro = {}; // Para mapeo rápido rubro -> artículos
+let articulosPorFamiliaMap = {}; // Para mapeo rápido familia -> artículos
+let paginaActual = 1;
+const articulosPorPagina = 50;
+
+// Cargar todos los artículos de todas las familias
+async function cargarTodosLosArticulos() {
+    const tbody = document.getElementById('articulos-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando artículos...</td></tr>';
     
     try {
-        const resp = await fetch(`<?= route('/encuestas/articulos') ?>?familiaDid=${familiaDid}`);
-        const data = await resp.json();
-        
-        if (data.success && data.articulos) {
-            articulosPorFamilia[familiaDid] = data.articulos;
-            cfgRenderArticulos(familiaDid);
-        } else {
-            container.innerHTML = '<div class="text-danger">Error al cargar artículos</div>';
+        todasLasFamiliaDids = [];
+        for (let rubroDid in familiasPorRubro) {
+            familiasPorRubro[rubroDid].forEach(familia => {
+                todasLasFamiliaDids.push(familia.did);
+            });
         }
+        
+        // Cargar artículos de todas las familias
+        const promesas = todasLasFamiliaDids.map(async (familiaDid) => {
+            const resp = await fetch(`<?= route('/encuestas/articulos') ?>?familiaDid=${familiaDid}`);
+            const data = await resp.json();
+            return data.success ? data.articulos : [];
+        });
+        
+        const arraysDeArticulos = await Promise.all(promesas);
+        
+        // Aplanar y estructurar todos los artículos
+        todosLosArticulos = [];
+        articulosPorRubro = {};
+        articulosPorFamiliaMap = {};
+        
+        for (let rubroDid in familiasPorRubro) {
+            const rubroNombre = rubros[rubroDid] || 'Desconocido';
+            
+            familiasPorRubro[rubroDid].forEach((familia) => {
+                const familiaIndex = todasLasFamiliaDids.indexOf(familia.did);
+                const articulosFamilia = arraysDeArticulos[familiaIndex] || [];
+                
+                articulosFamilia.forEach(articulo => {
+                    articulo.rubroNombre = rubroNombre;
+                    articulo.familiaNombre = familia.nombre;
+                    todosLosArticulos.push(articulo);
+                    
+                    if (!articulosPorRubro[rubroDid]) articulosPorRubro[rubroDid] = [];
+                    articulosPorRubro[rubroDid].push(articulo);
+                    
+                    if (!articulosPorFamiliaMap[familia.did]) articulosPorFamiliaMap[familia.did] = [];
+                    articulosPorFamiliaMap[familia.did].push(articulo);
+                });
+            });
+        }
+        
+        console.log(`Cargados ${todosLosArticulos.length} artículos totales`);
+        renderizarTabla(1);
+        
     } catch (e) {
         console.error('Error cargando artículos:', e);
-        container.innerHTML = '<div class="text-danger">Error de conexión</div>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar artículos</td></tr>';
     }
 }
 
-// Renderizar artículos de una familia
-function cfgRenderArticulos(familiaDid) {
-    const container = document.getElementById(`articulos-familia-${familiaDid}`);
-    if (!container || !articulosPorFamilia[familiaDid]) return;
+// Renderizar tabla con paginación
+function renderizarTabla(pagina = 1) {
+    paginaActual = pagina;
+    const tbody = document.getElementById('articulos-tbody');
+    const total = todosLosArticulos.length;
+    const desde = (pagina - 1) * articulosPorPagina;
+    const hasta = Math.min(desde + articulosPorPagina, total);
     
-    const articulos = articulosPorFamilia[familiaDid];
-    let html = '<div class="row">';
-    
-    articulos.forEach((a, idx) => {
+    let html = '';
+    for (let i = desde; i < hasta; i++) {
+        const a = todosLosArticulos[i];
         const deshabilitado = articulosDeshabilitados[a.did];
         html += `
-            <div class="col-md-4 col-sm-6 mb-2">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="cfg-art-${a.did}" 
-                           ${deshabilitado ? '' : 'checked'} 
-                           onchange="cfgToggle(${a.did}, this)">
-                    <label class="form-check-label" for="cfg-art-${a.did}">
-                        ${a.nombre}
-                    </label>
-                </div>
-            </div>
+            <tr>
+                <td>${i + 1}</td>
+                <td>${a.rubroNombre}</td>
+                <td>${a.familiaNombre}</td>
+                <td>${a.nombre}</td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input" type="checkbox" id="cfg-art-${a.did}" 
+                               ${deshabilitado ? '' : 'checked'} 
+                               onchange="cfgToggle(${a.did}, this)">
+                    </div>
+                </td>
+            </tr>
         `;
-    });
+    }
     
-    html += '</div>';
-    container.innerHTML = html;
+    tbody.innerHTML = html;
+    
+    // Actualizar info y paginador
+    document.getElementById('articulos-info').textContent = total ? `Mostrando ${desde + 1}-${hasta} de ${total}` : '';
+    
+    const pags = Math.ceil(total / articulosPorPagina) || 1;
+    let pHtml = '';
+    for (let p = 1; p <= pags; p++) {
+        pHtml += `<li class="page-item ${p === pagina ? 'active' : ''}"><button class="page-link" onclick="renderizarTabla(${p})">${p}</button></li>`;
+    }
+    document.getElementById('articulos-paginador').innerHTML = pHtml;
 }
 
 // Toggle artículo
@@ -239,61 +278,9 @@ async function cfgToggle(didArticulo, checkbox) {
     }
 }
 
-// Event listeners para cargar artículos cuando se abre un accordion
+// Cargar todos los artículos al inicializar
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado, buscando accordion buttons...');
-    
-    // Usar event delegation en lugar de foreach directo para evitar problemas con múltiples accordions
-    document.addEventListener('shown.bs.collapse', function(event) {
-        console.log('Accordion abierto!');
-        const collapse = event.target;
-        
-        // Buscar todos los containers de artículos dentro de este accordion
-        const articulosContainers = collapse.querySelectorAll('[id^="articulos-familia-"]');
-        console.log('Encontrados', articulosContainers.length, 'containers de artículos');
-        
-        articulosContainers.forEach(container => {
-            const familiaDid = container.id.replace('articulos-familia-', '');
-            console.log('Cargando artículos para familiaDid:', familiaDid);
-            if (familiaDid && !articulosPorFamilia[familiaDid]) {
-                cfgCargarArticulos(familiaDid);
-            } else if (articulosPorFamilia[familiaDid]) {
-                console.log('Familia ya cargada en cache');
-            }
-        });
-    });
-    
-    // Backup: también escuchar clicks directos
-    document.querySelectorAll('.accordion-button').forEach(btn => {
-        btn.addEventListener('click', function() {
-            console.log('Accordion button clickeado');
-            setTimeout(() => {
-                const targetId = this.getAttribute('data-bs-target');
-                if (!targetId) return;
-                
-                const collapse = document.querySelector(targetId);
-                if (!collapse) return;
-                
-                // Verificar si está abierto por aria-expanded o show
-                const isOpen = collapse.classList.contains('show') || this.getAttribute('aria-expanded') === 'true';
-                
-                if (isOpen) {
-                    console.log('Collapse está abierto, cargando artículos...');
-                    const articulosContainers = collapse.querySelectorAll('[id^="articulos-familia-"]');
-                    console.log('Encontrados', articulosContainers.length, 'containers de artículos');
-                    articulosContainers.forEach(container => {
-                        const familiaDid = container.id.replace('articulos-familia-', '');
-                        console.log('Cargando artículos para familiaDid:', familiaDid);
-                        if (familiaDid && !articulosPorFamilia[familiaDid]) {
-                            cfgCargarArticulos(familiaDid);
-                        }
-                    });
-                }
-            }, 500);
-        });
-    });
-    
-    console.log('Event listeners agregados');
+    cargarTodosLosArticulos();
 });
 
 // ============================================
