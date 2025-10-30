@@ -40,15 +40,14 @@ class EncuestasController {
         // Verificar si es editable
         $esEditable = $encuestaModel->isEditable($encuesta['did']);
         
-        // Cargar rubros, familias, artículos, mercados
+        // Cargar rubros, familias, mercados (NO artículos - se cargan por demanda)
         $rubroModel = new Rubro();
         $familiaModel = new Familia();
-        $articuloModel = new Articulo();
         $mercadoModel = new Mercado();
         
         $rubros = $rubroModel->getAll();
         $familias = $familiaModel->getAll();
-        $articulos = $articuloModel->getAll();
+        // $articulos = NO se carga aquí - carga diferida via AJAX
         $mercados = $mercadoModel->getAll();
         
         // Organizar datos por jerarquía
