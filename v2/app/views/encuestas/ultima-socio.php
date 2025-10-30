@@ -242,27 +242,43 @@ async function cfgToggle(didArticulo, checkbox) {
 // Event listeners para cargar artículos cuando se abre un accordion
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado, buscando accordion buttons...');
-    const accordionButtons = document.querySelectorAll('.accordion-button');
-    console.log('Encontrados', accordionButtons.length, 'accordion buttons');
     
-    // Cuando se abre un accordion, cargar las familias que se muestran
-    accordionButtons.forEach(btn => {
+    // Usar event delegation en lugar de foreach directo para evitar problemas con múltiples accordions
+    document.addEventListener('shown.bs.collapse', function(event) {
+        console.log('Accordion abierto!');
+        const collapse = event.target;
+        
+        // Buscar todos los containers de artículos dentro de este accordion
+        const articulosContainers = collapse.querySelectorAll('[id^="articulos-familia-"]');
+        console.log('Encontrados', articulosContainers.length, 'containers de artículos');
+        
+        articulosContainers.forEach(container => {
+            const familiaDid = container.id.replace('articulos-familia-', '');
+            console.log('Cargando artículos para familiaDid:', familiaDid);
+            if (familiaDid && !articulosPorFamilia[familiaDid]) {
+                cfgCargarArticulos(familiaDid);
+            } else if (articulosPorFamilia[familiaDid]) {
+                console.log('Familia ya cargada en cache');
+            }
+        });
+    });
+    
+    // Backup: también escuchar clicks directos
+    document.querySelectorAll('.accordion-button').forEach(btn => {
         btn.addEventListener('click', function() {
             console.log('Accordion button clickeado');
-            const targetId = this.getAttribute('data-bs-target');
-            console.log('Target ID:', targetId);
-            if (!targetId) return;
-            
-            const collapse = document.querySelector(targetId);
-            if (!collapse) {
-                console.log('No se encontró el collapse con ID:', targetId);
-                return;
-            }
-            
-            // Esperar a que el collapse se abra y luego cargar artículos
             setTimeout(() => {
-                if (collapse.classList.contains('show')) {
-                    console.log('Collapse abierto, buscando containers de artículos...');
+                const targetId = this.getAttribute('data-bs-target');
+                if (!targetId) return;
+                
+                const collapse = document.querySelector(targetId);
+                if (!collapse) return;
+                
+                // Verificar si está abierto por aria-expanded o show
+                const isOpen = collapse.classList.contains('show') || this.getAttribute('aria-expanded') === 'true';
+                
+                if (isOpen) {
+                    console.log('Collapse está abierto, cargando artículos...');
                     const articulosContainers = collapse.querySelectorAll('[id^="articulos-familia-"]');
                     console.log('Encontrados', articulosContainers.length, 'containers de artículos');
                     articulosContainers.forEach(container => {
@@ -270,16 +286,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log('Cargando artículos para familiaDid:', familiaDid);
                         if (familiaDid && !articulosPorFamilia[familiaDid]) {
                             cfgCargarArticulos(familiaDid);
-                        } else if (articulosPorFamilia[familiaDid]) {
-                            console.log('Familia ya cargada en cache');
                         }
                     });
-                } else {
-                    console.log('Collapse no está abierto');
                 }
-            }, 300);
+            }, 500);
         });
     });
+    
+    console.log('Event listeners agregados');
 });
 
 // ============================================
