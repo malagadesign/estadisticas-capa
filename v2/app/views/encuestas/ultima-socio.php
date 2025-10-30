@@ -193,31 +193,43 @@ function cargarFamilias() {
     }
 }
 
-function cargarArticulos() {
+async function cargarArticulos() {
     const familiaDid = document.getElementById('select-familia').value;
     const selectArticulo = document.getElementById('select-articulo');
     
     // Reset
-    selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
+    selectArticulo.innerHTML = '<option value="">⏳ Cargando artículos...</option>';
     selectArticulo.disabled = true;
     document.getElementById('formulario-carga').style.display = 'none';
     document.getElementById('mensaje-inicial').style.display = 'block';
     
     if (!familiaDid) return;
     
-    // Cargar artículos
-    const articulos = articulosPorFamilia[familiaDid] || [];
-    if (articulos.length > 0) {
-        articulos.forEach(articulo => {
-            // Filtrar artículos deshabilitados
-            if (!articulosDeshabilitados[articulo.did]) {
+    try {
+        // Cargar artículos por demanda desde el servidor
+        const response = await fetch(`<?= route('/encuestas/articulos') ?>?familiaDid=${familiaDid}`);
+        const result = await response.json();
+        
+        if (result.success && result.articulos) {
+            // Reset selector
+            selectArticulo.innerHTML = '<option value="">Seleccione un artículo...</option>';
+            
+            // Renderizar artículos
+            result.articulos.forEach(articulo => {
                 const option = document.createElement('option');
                 option.value = articulo.did;
                 option.textContent = articulo.nombre;
                 selectArticulo.appendChild(option);
-            }
-        });
-        selectArticulo.disabled = false;
+            });
+            
+            selectArticulo.disabled = false;
+        } else {
+            selectArticulo.innerHTML = '<option value="">Error al cargar artículos</option>';
+            console.error('Error cargando artículos:', result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        selectArticulo.innerHTML = '<option value="">Error de conexión</option>';
     }
 }
 
