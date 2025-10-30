@@ -142,7 +142,7 @@ class Encuesta {
     public function toggleArticuloSocio($usuarioDid, $articuloDid) {
         // Verificar si ya existe
         $exists = $this->db->fetchOne(
-            "SELECT did, habilitado FROM articulosUsuarios 
+            "SELECT id, habilitado FROM articulosUsuarios 
              WHERE didUsuario = ? 
              AND didArticulo = ? 
              AND superado = 0 
@@ -157,18 +157,39 @@ class Encuesta {
             $this->db->query(
                 "UPDATE articulosUsuarios 
                  SET habilitado = ? 
-                 WHERE did = ?",
-                ['ii', $nuevoEstado, $exists['did']]
+                 WHERE id = ?",
+                ['ii', $nuevoEstado, $exists['id']]
             );
             return $nuevoEstado;
         } else {
-            // Crear nuevo deshabilitado
-            $this->db->insert(
+            // Primero, marcar como superado los anteriores (soft delete)
+            $this->db->query(
+                "UPDATE articulosUsuarios 
+                 SET superado = 1 
+                 WHERE didArticulo = ? 
+                 AND didUsuario = ? 
+                 AND superado = 0",
+                ['ii', $articuloDid, $usuarioDid]
+            );
+            
+            // Crear nuevo registro
+            $idInsertado = $this->db->insert(
                 "INSERT INTO articulosUsuarios 
                  (didUsuario, didArticulo, habilitado, superado, elim) 
                  VALUES (?, ?, 0, 0, 0)",
                 ['ii', $usuarioDid, $articuloDid]
             );
+            
+            // Actualizar did con el id insertado
+            if ($idInsertado) {
+                $this->db->query(
+                    "UPDATE articulosUsuarios 
+                     SET did = ? 
+                     WHERE id = ?",
+                    ['ii', $idInsertado, $idInsertado]
+                );
+            }
+            
             return 0;
         }
     }
