@@ -157,11 +157,16 @@
     <?php endif; ?>
 </div>
 
-<?php if ($esEditable): ?>
-<script>
+    <?php if ($esEditable): ?>
+    <script>
+console.log('🚀 Iniciando carga de la página...');
+console.log('📊 Familias por rubro:', <?= json_encode($familiasPorRubro) ?>);
+// articulosPorFamilia ya NO se carga aquí - se carga por demanda via AJAX
+console.log('📦 Mercados:', <?= json_encode($mercados) ?>);
+console.log('❌ Artículos deshabilitados:', <?= json_encode($articulosDeshabilitados) ?>);
+
 // Datos para los selectores
 const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
-// articulosPorFamilia ya NO se carga aquí - se carga por demanda via AJAX
 const mercados = <?= json_encode($mercados) ?>;
 const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
 

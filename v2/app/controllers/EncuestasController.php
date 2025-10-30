@@ -50,6 +50,9 @@ class EncuestasController {
         // $articulos = NO se carga aquí - carga diferida via AJAX
         $mercados = $mercadoModel->getAll();
         
+        // Debug: Log de carga
+        error_log("DEBUG carga inicial - Rubros: " . count($rubros) . ", Familias: " . count($familias) . ", Mercados: " . count($mercados));
+        
         // Organizar datos por jerarquía
         $rubrosArray = [];
         foreach ($rubros as $rubro) {
