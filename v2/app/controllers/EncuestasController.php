@@ -167,33 +167,44 @@ class EncuestasController {
      * Toggle artículo (AJAX)
      */
     public function toggleArticulo() {
+        error_log("DEBUG toggleArticulo - Inicio");
+        
         // Verificar autenticación
         if (!Session::isLoggedIn()) {
+            error_log("DEBUG toggleArticulo - No autenticado");
             View::json(['success' => false, 'message' => 'No autenticado'], 401);
         }
         
         // Solo socios pueden configurar artículos
         if (Session::isAdmin()) {
+            error_log("DEBUG toggleArticulo - Admin no puede configurar");
             View::json(['success' => false, 'message' => 'Los administradores no pueden configurar artículos'], 403);
         }
         
         // Verificar CSRF
         $csrfToken = Request::post('csrf_token');
+        error_log("DEBUG toggleArticulo - CSRF token recibido: " . substr($csrfToken, 0, 20) . "...");
         if (!csrf_verify($csrfToken)) {
+            error_log("DEBUG toggleArticulo - Token inválido");
             View::json(['success' => false, 'message' => 'Token inválido'], 403);
         }
         
         // Obtener datos
         $articuloDid = Request::post('articuloDid');
+        $userId = Session::userId();
+        error_log("DEBUG toggleArticulo - ArticuloDid: $articuloDid, UserId: $userId");
         
         if (!$articuloDid) {
+            error_log("DEBUG toggleArticulo - Artículo no especificado");
             View::json(['success' => false, 'message' => 'Artículo no especificado'], 400);
         }
         
         // Toggle
         try {
             $encuestaModel = new Encuesta();
-            $nuevoEstado = $encuestaModel->toggleArticuloSocio(Session::userId(), $articuloDid);
+            error_log("DEBUG toggleArticulo - Llamando a toggleArticuloSocio");
+            $nuevoEstado = $encuestaModel->toggleArticuloSocio($userId, $articuloDid);
+            error_log("DEBUG toggleArticulo - Nuevo estado: $nuevoEstado");
             
             View::json([
                 'success' => true,
@@ -201,7 +212,8 @@ class EncuestasController {
                 'message' => $nuevoEstado ? 'Artículo habilitado' : 'Artículo deshabilitado'
             ]);
         } catch (Exception $e) {
-            error_log("Error toggle artículo: " . $e->getMessage());
+            error_log("ERROR toggle artículo: " . $e->getMessage());
+            error_log("ERROR stack trace: " . $e->getTraceAsString());
             View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
         }
     }

@@ -140,6 +140,8 @@ class Encuesta {
      * Toggle artículo para un socio
      */
     public function toggleArticuloSocio($usuarioDid, $articuloDid) {
+        error_log("DEBUG toggleArticuloSocio - Inicio: usuarioDid=$usuarioDid, articuloDid=$articuloDid");
+        
         // Verificar si ya existe
         $exists = $this->db->fetchOne(
             "SELECT id, habilitado FROM articulosUsuarios 
@@ -151,18 +153,23 @@ class Encuesta {
             ['ii', $usuarioDid, $articuloDid]
         );
         
+        error_log("DEBUG toggleArticuloSocio - Exists: " . ($exists ? "Sí (id={$exists['id']}, habilitado={$exists['habilitado']})" : "No"));
+        
         if ($exists) {
             // Toggle habilitado
             $nuevoEstado = $exists['habilitado'] == 1 ? 0 : 1;
+            error_log("DEBUG toggleArticuloSocio - Updating: id={$exists['id']}, nuevoEstado=$nuevoEstado");
             $this->db->query(
                 "UPDATE articulosUsuarios 
                  SET habilitado = ? 
                  WHERE id = ?",
                 ['ii', $nuevoEstado, $exists['id']]
             );
+            error_log("DEBUG toggleArticuloSocio - Update exitoso");
             return $nuevoEstado;
         } else {
             // Primero, marcar como superado los anteriores (soft delete)
+            error_log("DEBUG toggleArticuloSocio - Marcando anteriores como superado=1");
             $this->db->query(
                 "UPDATE articulosUsuarios 
                  SET superado = 1 
@@ -173,6 +180,7 @@ class Encuesta {
             );
             
             // Crear nuevo registro
+            error_log("DEBUG toggleArticuloSocio - Insertando nuevo registro");
             $idInsertado = $this->db->insert(
                 "INSERT INTO articulosUsuarios 
                  (didUsuario, didArticulo, habilitado, superado, elim) 
@@ -180,8 +188,11 @@ class Encuesta {
                 ['ii', $usuarioDid, $articuloDid]
             );
             
+            error_log("DEBUG toggleArticuloSocio - Id insertado: $idInsertado");
+            
             // Actualizar did con el id insertado
             if ($idInsertado) {
+                error_log("DEBUG toggleArticuloSocio - Actualizando did=$idInsertado");
                 $this->db->query(
                     "UPDATE articulosUsuarios 
                      SET did = ? 
@@ -190,6 +201,7 @@ class Encuesta {
                 );
             }
             
+            error_log("DEBUG toggleArticuloSocio - Retornando 0");
             return 0;
         }
     }
