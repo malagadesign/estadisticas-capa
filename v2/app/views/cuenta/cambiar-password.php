@@ -3,7 +3,7 @@ $content = ob_get_contents();
 ob_clean();
 
 // Layout
-$layout = 'admin';
+$layout = 'base';
 $title = 'Cambiar Contraseña - CAPA';
 
 ob_start();

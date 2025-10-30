@@ -15,7 +15,7 @@ class CuentaController {
         
         View::render('cuenta/cambiar-password', [
             'title' => 'Cambiar Contraseña - CAPA'
-        ]);
+        ], 'base');
     }
     
     /**
