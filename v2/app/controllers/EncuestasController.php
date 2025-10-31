@@ -164,6 +164,70 @@ class EncuestasController {
     }
     
     /**
+     * Guardar dato (cantidad o valor) - Tab 2 grilla (AJAX)
+     */
+    public function guardarDato() {
+        error_log("DEBUG guardarDato - Inicio");
+        
+        // Verificar autenticación
+        if (!Session::isLoggedIn()) {
+            error_log("DEBUG guardarDato - No autenticado");
+            View::json(['success' => false, 'message' => 'No autenticado'], 401);
+        }
+        
+        // Solo socios pueden cargar datos
+        if (Session::isAdmin()) {
+            error_log("DEBUG guardarDato - Admin no puede cargar");
+            View::json(['success' => false, 'message' => 'Los administradores no pueden cargar datos'], 403);
+        }
+        
+        // Verificar CSRF
+        $csrfToken = Request::post('csrf_token');
+        if (!csrf_verify($csrfToken)) {
+            error_log("DEBUG guardarDato - Token inválido");
+            View::json(['success' => false, 'message' => 'Token inválido'], 403);
+        }
+        
+        // Obtener datos
+        $encuestaDid = Request::post('encuestaDid');
+        $articuloDid = Request::post('articuloDid');
+        $canalDid = Request::post('canalDid'); // Mercado/Canal
+        $tipoTexto = Request::post('tipo'); // 'cantidad' o 'valor'
+        $monto = Request::post('monto', 0);
+        
+        error_log("DEBUG guardarDato - encuestaDid=$encuestaDid, articuloDid=$articuloDid, canalDid=$canalDid, tipoTexto=$tipoTexto, monto=$monto");
+        
+        // Validar
+        if (!$encuestaDid || !$articuloDid || !$canalDid || !$tipoTexto) {
+            error_log("DEBUG guardarDato - Datos incompletos");
+            View::json(['success' => false, 'message' => 'Datos incompletos'], 400);
+        }
+        
+        // Convertir tipo texto a número: cantidad=1, valor=2
+        $tipoNum = ($tipoTexto === 'cantidad' || $tipoTexto === '1') ? 1 : 2;
+        error_log("DEBUG guardarDato - tipo convertido: $tipoNum");
+        
+        // Guardar
+        try {
+            $encuestaModel = new Encuesta();
+            $encuestaModel->saveMonto(
+                $encuestaDid,
+                Session::userId(),
+                $articuloDid,
+                $canalDid,
+                $tipoNum,
+                $monto
+            );
+            
+            error_log("DEBUG guardarDato - OK");
+            View::json(['success' => true, 'message' => 'Dato guardado correctamente']);
+        } catch (Exception $e) {
+            error_log("Error guardando dato: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al guardar: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    /**
      * Toggle artículo (AJAX)
      */
     public function toggleArticulo() {

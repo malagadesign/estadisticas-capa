@@ -25,6 +25,7 @@ $router->get('/logout', 'AuthController@logout');
 $router->get('/encuestas/ultima', 'EncuestasController@ultima');
 $router->get('/encuestas/anteriores', 'EncuestasController@anteriores');
 $router->post('/encuestas/guardar-precio', 'EncuestasController@guardarPrecio');
+$router->post('/encuestas/guardar-dato', 'EncuestasController@guardarDato'); // Nueva: grilla Tab 2
 $router->post('/encuestas/upload-excel', 'EncuestasController@uploadExcel');
 $router->post('/encuestas/toggle-articulo', 'EncuestasController@toggleArticulo');
 $router->get('/encuestas/articulos', 'EncuestasController@getArticulosPorFamilia'); // Nueva: carga diferida

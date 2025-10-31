@@ -101,6 +101,8 @@ class Encuesta {
      * Guardar/actualizar monto
      */
     public function saveMonto($encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo, $monto) {
+        error_log("DEBUG saveMonto - inicio: encuestaDid=$encuestaDid, usuarioDid=$usuarioDid, articuloDid=$articuloDid, mercadoDid=$mercadoDid, tipo=$tipo, monto=$monto");
+        
         // Verificar si ya existe
         $exists = $this->db->fetchOne(
             "SELECT did FROM articulosMontos 
@@ -112,10 +114,11 @@ class Encuesta {
              AND superado = 0 
              AND elim = 0 
              LIMIT 1",
-            ['iiiss', $encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo]
+            ['iiiii', $encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo]
         );
         
         if ($exists) {
+            error_log("DEBUG saveMonto - UPDATE did={$exists['did']}");
             // Update
             $this->db->query(
                 "UPDATE articulosMontos 
@@ -124,15 +127,17 @@ class Encuesta {
                 ['di', $monto, $exists['did']]
             );
         } else {
+            error_log("DEBUG saveMonto - INSERT");
             // Insert
             $this->db->insert(
                 "INSERT INTO articulosMontos 
                  (didEncuesta, didUsuario, didArticulo, didMercado, tipo, monto, superado, elim) 
                  VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
-                ['iiissd', $encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo, $monto]
+                ['iiiisd', $encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo, $monto]
             );
         }
         
+        error_log("DEBUG saveMonto - OK");
         return true;
     }
     

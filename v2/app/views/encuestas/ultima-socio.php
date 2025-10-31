@@ -362,15 +362,37 @@ function renderizarTablaCarga(pagina = 1) {
 
 // Guardar dato
 async function guardarDato(articuloDid, canalDid, tipo, input) {
-    const valor = input.value;
-    
-    // TODO: Implementar guardado real en backend
+    const valor = parseFloat(input.value) || 0;
     console.log(`Guardando: artículo=${articuloDid}, canal=${canalDid}, tipo=${tipo}, valor=${valor}`);
     
-    // Feedback visual
-    input.classList.add('is-valid');
-    setTimeout(() => input.classList.remove('is-valid'), 2000);
-    showToast('Dato guardado', 'success');
+    try {
+        const response = await fetchCapa('<?= route('/encuestas/guardar-dato') ?>', {
+            method: 'POST',
+            body: JSON.stringify({
+                csrf_token: csrfToken,
+                encuestaDid: encuestaDid,
+                articuloDid: articuloDid,
+                canalDid: canalDid,
+                tipo: tipo,
+                monto: valor
+            })
+        });
+        
+        if (response.success) {
+            input.classList.add('is-valid');
+            setTimeout(() => input.classList.remove('is-valid'), 2000);
+            showToast('Dato guardado', 'success');
+        } else {
+            input.classList.add('is-invalid');
+            setTimeout(() => input.classList.remove('is-invalid'), 2000);
+            showToast(response.message || 'Error al guardar', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        input.classList.add('is-invalid');
+        setTimeout(() => input.classList.remove('is-invalid'), 2000);
+        showToast('Error de conexión', 'danger');
+    }
 }
     </script>
     <?php endif; ?>
