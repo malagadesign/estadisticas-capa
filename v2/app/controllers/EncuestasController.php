@@ -389,5 +389,67 @@ class EncuestasController {
             View::json(['success' => false, 'message' => 'Error al cargar artículos'], 500);
         }
     }
+    
+    /**
+     * Obtener seguimiento de socios (AJAX)
+     */
+    public function seguimiento() {
+        // Verificar autenticación
+        if (!Session::isLoggedIn() || !Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        // Obtener última encuesta
+        $encuestaModel = new Encuesta();
+        $encuesta = $encuestaModel->getUltima();
+        
+        if (!$encuesta) {
+            View::json(['success' => false, 'message' => 'No hay encuestas activas'], 404);
+        }
+        
+        $db = Database::getInstance();
+        
+        // Obtener socios que cargaron datos
+        $completaron = $db->fetchAll(
+            "SELECT DISTINCT u.did, u.usuario 
+             FROM usuarios u
+             INNER JOIN articulosMontos am ON u.did = am.didUsuario
+             WHERE am.didEncuesta = ? 
+             AND am.superado = 0 
+             AND am.elim = 0 
+             AND am.monto > 0
+             AND TRIM(u.tipo) = 'socio' 
+             AND u.superado = 0 
+             AND u.elim = 0 
+             AND u.habilitado = 1
+             ORDER BY u.usuario ASC",
+            ['i', $encuesta['did']]
+        );
+        
+        // Obtener todos los socios
+        $todosLosSocios = $db->fetchAll(
+            "SELECT did, usuario 
+             FROM usuarios 
+             WHERE TRIM(tipo) = 'socio' 
+             AND superado = 0 
+             AND elim = 0 
+             AND habilitado = 1
+             ORDER BY usuario ASC"
+        );
+        
+        // Obtener IDs de los que completaron
+        $completaronIds = array_column($completaron, 'did');
+        
+        // Los que faltan son los que no están en completaron
+        $faltan = array_filter($todosLosSocios, function($socio) use ($completaronIds) {
+            return !in_array($socio['did'], $completaronIds);
+        });
+        
+        View::json([
+            'success' => true,
+            'completaron' => array_values($completaron),
+            'faltan' => array_values($faltan)
+        ]);
+    }
 }
 

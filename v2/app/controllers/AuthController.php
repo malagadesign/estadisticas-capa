@@ -84,12 +84,6 @@ class AuthController {
         // Log de login exitoso
         error_log("Login successful: {$usuario} ({$user['tipo']})");
         
-        // Verificar si debe cambiar contraseña (hash no vacío)
-        if (!empty($user['hash'])) {
-            Session::set('force_password_change', true);
-            View::redirect('/cuenta/cambiar-password', 'Debe cambiar su contraseña', 'warning');
-        }
-        
         // Redirigir al dashboard
         View::redirect('/dashboard', '¡Bienvenido ' . $user['usuario'] . '!', 'success');
     }

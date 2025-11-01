@@ -29,6 +29,7 @@ $router->post('/encuestas/guardar-dato', 'EncuestasController@guardarDato'); // 
 $router->post('/encuestas/upload-excel', 'EncuestasController@uploadExcel');
 $router->post('/encuestas/toggle-articulo', 'EncuestasController@toggleArticulo');
 $router->get('/encuestas/articulos', 'EncuestasController@getArticulosPorFamilia'); // Nueva: carga diferida
+$router->get('/encuestas/seguimiento', 'EncuestasController@seguimiento'); // Nueva: seguimiento admin
 
 // ===============================================
 // USUARIOS (Solo Admin) - MIGRADO DE V1
