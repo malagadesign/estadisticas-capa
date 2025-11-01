@@ -302,6 +302,21 @@ function renderizarTablaCarga(pagina = 1) {
     let html = '';
     for (let i = desde; i < hasta; i++) {
         const a = articulosIncorporados[i];
+        
+        // Obtener valores guardados para cada campo
+        const getValor = (canalDid, tipoTexto) => {
+            const tipoNum = tipoTexto === 'cantidad' ? 1 : 2;
+            const key = `${a.did}-${canalDid}-${tipoNum}`;
+            return montosYaCargados[key] || '';
+        };
+        
+        const cant1 = getValor(1, 'cantidad');
+        const val1 = getValor(1, 'valor');
+        const cant2 = getValor(2, 'cantidad');
+        const val2 = getValor(2, 'valor');
+        const cant3 = getValor(3, 'cantidad');
+        const val3 = getValor(3, 'valor');
+        
         html += `
             <tr>
                 <td>${a.rubroNombre}</td>
@@ -311,37 +326,37 @@ function renderizarTablaCarga(pagina = 1) {
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 1, 'cantidad', this)"
-                           placeholder="0" step="1">
+                           placeholder="0" step="1" value="${cant1}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 1, 'valor', this)"
-                           placeholder="0.00" step="0.01">
+                           placeholder="0.00" step="0.01" value="${val1}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 2, 'cantidad', this)"
-                           placeholder="0" step="1">
+                           placeholder="0" step="1" value="${cant2}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 2, 'valor', this)"
-                           placeholder="0.00" step="0.01">
+                           placeholder="0.00" step="0.01" value="${val2}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 3, 'cantidad', this)"
-                           placeholder="0" step="1">
+                           placeholder="0" step="1" value="${cant3}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 3, 'valor', this)"
-                           placeholder="0.00" step="0.01">
+                           placeholder="0.00" step="0.01" value="${val3}">
                 </td>
             </tr>
         `;
