@@ -186,24 +186,12 @@ class Encuesta {
             error_log("DEBUG toggleArticuloSocio - Insertando nuevo registro");
             $idInsertado = $this->db->insert(
                 "INSERT INTO articulosUsuarios 
-                 (didUsuario, didArticulo, habilitado, superado, elim) 
-                 VALUES (?, ?, 0, 0, 0)",
-                ['ii', $usuarioDid, $articuloDid]
+                 (didUsuario, didArticulo, habilitado, superado, elim, quien) 
+                 VALUES (?, ?, 0, 0, 0, ?)",
+                ['iii', $usuarioDid, $articuloDid, $usuarioDid]
             );
             
             error_log("DEBUG toggleArticuloSocio - Id insertado: $idInsertado");
-            
-            // Actualizar did con el id insertado
-            if ($idInsertado) {
-                error_log("DEBUG toggleArticuloSocio - Actualizando did=$idInsertado");
-                $this->db->query(
-                    "UPDATE articulosUsuarios 
-                     SET did = ? 
-                     WHERE id = ?",
-                    ['ii', $idInsertado, $idInsertado]
-                );
-            }
-            
             error_log("DEBUG toggleArticuloSocio - Retornando 0");
             return 0;
         }
