@@ -28,9 +28,15 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <p class="text-muted mb-3">
-                            El número en superíndice indica cuántos socios completaron cada campo.
-                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="text-muted mb-0">
+                                El número en superíndice indica cuántos socios completaron cada campo.
+                            </p>
+                            <button class="btn btn-success" onclick="crearArchivoExcelAdmin()">
+                                <i class="fas fa-download me-2"></i>
+                                Descargar Excel
+                            </button>
+                        </div>
                         
                         <!-- Desktop Table -->
                         <div class="table-responsive d-none d-md-block">
@@ -146,6 +152,9 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+
 <script>
 // Datos para consolidado
 const consolidado = <?= json_encode($consolidado) ?>;
@@ -155,6 +164,7 @@ const articulosConsolidado = <?= json_encode($articulos) ?>;
 const mercadosConsolidado = <?= json_encode($mercados) ?>;
 const familiasPorRubroConsolidado = <?= json_encode($familiasPorRubro) ?>;
 const articulosPorFamiliaConsolidado = <?= json_encode($articulosPorFamilia) ?>;
+const encuestaNombre = '<?= e($encuesta['nombre']) ?>';
 
 // Función para renderizar consolidado
 function renderizarConsolidado() {
@@ -275,6 +285,77 @@ function renderizarSeguimiento() {
             tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error al cargar datos</td></tr>';
             if (mobileDiv) mobileDiv.innerHTML = '<div class="col-12 text-center text-danger">Error al cargar datos</div>';
         });
+}
+
+// Función para crear Excel admin
+function crearArchivoExcelAdmin() {
+    var workbook = new ExcelJS.Workbook();
+    var worksheet = workbook.addWorksheet(encuestaNombre);
+    
+    // Crear encabezado
+    var headers = ['#', 'Rubro', 'Familia', 'Artículo'];
+    var headerWidths = [4, 20, 25, 45];
+    
+    mercadosConsolidado.forEach(mercado => {
+        headers.push(mercado.nombre + ' - CANTIDAD');
+        headers.push(mercado.nombre + ' - VALOR');
+        headerWidths.push(15);
+        headerWidths.push(15);
+    });
+    
+    worksheet.columns = headers.map((header, index) => ({
+        header: header,
+        width: headerWidths[index]
+    }));
+    
+    // Formatear encabezado
+    worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center' };
+    });
+    
+    // Añadir datos
+    let rowNum = 0;
+    for (let rubroDid in familiasPorRubroConsolidado) {
+        const familiasDelRubro = familiasPorRubroConsolidado[rubroDid];
+        
+        familiasDelRubro.forEach(familia => {
+            const articulosDeLaFamilia = articulosPorFamiliaConsolidado[familia.did] || [];
+            
+            articulosDeLaFamilia.forEach(articulo => {
+                rowNum++;
+                let row = [rowNum, rubrosConsolidado[rubroDid], familia.nombre, articulo.nombre];
+                
+                mercadosConsolidado.forEach(mercado => {
+                    const keyCant = articulo.did + '-' + mercado.did + '-1';
+                    const keyVal = articulo.did + '-' + mercado.did + '-2';
+                    const datoCant = consolidado[keyCant];
+                    const datoVal = consolidado[keyVal];
+                    
+                    row.push(datoCant && datoCant.monto > 0 ? datoCant.monto : 0);
+                    row.push(datoVal && datoVal.monto > 0 ? datoVal.monto : 0);
+                });
+                
+                worksheet.addRow(row);
+            });
+        });
+    }
+    
+    // Formatear celdas numéricas
+    for (let i = 2; i <= rowNum + 1; i++) {
+        let col = 5; // Empieza en columna E
+        for (let j = 0; j < mercadosConsolidado.length; j++) {
+            worksheet.getRow(i).getCell(col).alignment = { horizontal: 'right' };
+            worksheet.getRow(i).getCell(col + 1).alignment = { horizontal: 'right' };
+            col += 2;
+        }
+    }
+    
+    // Guardar
+    workbook.xlsx.writeBuffer().then(function(buffer) {
+        let blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+        saveAs(blob, "Consolidado_" + encuestaNombre + ".xlsx");
+    });
 }
 
 // Cargar al inicializar
