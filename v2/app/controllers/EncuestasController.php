@@ -104,19 +104,30 @@ class EncuestasController {
         $articulosNoIncluidos = [];
         
         if ($isAdmin) {
-            // Admin: ver artículos no incluidos por socios
-            $startTime = microtime(true);
-            $articulosNoIncluidos = $encuestaModel->getArticulosNoIncluidosPorSocios();
-            $elapsedTime = round((microtime(true) - $startTime) * 1000, 2);
-            error_log("DEBUG admin - getArticulosNoIncluidosPorSocios(): Tardó {$elapsedTime}ms, cantidad: " . count($articulosNoIncluidos));
-            
             // Admin: cargar consolidado con count de socios
             $consolidado = $encuestaModel->getConsolidadoAdmin($encuesta['did']);
+            
+            // Admin: contar socios que cargaron datos
+            $db = Database::getInstance();
+            $sociosCargaron = $db->fetchOne(
+                "SELECT COUNT(DISTINCT didUsuario) as total FROM articulosMontos 
+                 WHERE didEncuesta = ? AND superado = 0 AND elim = 0 AND monto > 0",
+                ['i', $encuesta['did']]
+            )['total'];
+            
+            $totalSocios = $db->fetchOne(
+                "SELECT COUNT(*) as total FROM usuarios 
+                 WHERE TRIM(tipo) = 'socio' AND superado = 0 AND elim = 0 AND habilitado = 1"
+            )['total'];
+            
+            $sociosFaltan = $totalSocios - $sociosCargaron;
         } else {
             // Socio: cargar sus datos
             $articulosDeshabilitados = $encuestaModel->getArticulosDeshabilitadosPorSocio($userId);
             $montosYaCargados = $encuestaModel->getMontosYaCargados($encuesta['did'], $userId);
             $consolidado = [];
+            $sociosCargaron = 0;
+            $sociosFaltan = 0;
         }
         
         View::render('encuestas/ultima', [
@@ -133,6 +144,8 @@ class EncuestasController {
             'montosYaCargados' => $montosYaCargados,
             'articulosNoIncluidos' => $articulosNoIncluidos,
             'consolidado' => $consolidado,
+            'sociosCargaron' => $sociosCargaron ?? 0,
+            'sociosFaltan' => $sociosFaltan ?? 0,
             'isAdmin' => $isAdmin
         ]);
     }

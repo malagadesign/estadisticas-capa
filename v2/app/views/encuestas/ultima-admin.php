@@ -9,8 +9,21 @@
                 Consolidado de Datos de Socios
             </div>
             <div class="card-body">
-                <p class="text-muted mb-4">
-                    Datos consolidados de todos los socios. El número en superíndice indica cuántos socios completaron cada campo.
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-users me-2"></i>
+                    Encuesta completada por <strong><?= $sociosCargaron ?></strong> socios.
+                    <span class="ms-2">
+                        <?php if ($sociosFaltan > 0): ?>
+                            <i class="fas fa-exclamation-circle text-warning me-1"></i>
+                            Faltan <strong><?= $sociosFaltan ?></strong> socios.
+                        <?php else: ?>
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Todos los socios han completado la encuesta.
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <p class="text-muted mb-3">
+                    El número en superíndice indica cuántos socios completaron cada campo.
                 </p>
                 
                 <!-- Desktop Table -->
