@@ -125,7 +125,7 @@ class EncuestasController {
             'familiasPorRubro' => $familiasPorRubro,
             'articulos' => $articulosArray,
             'articulosPorFamilia' => $articulosPorFamilia,
-            'mercados' => $mercadosArray,
+            'mercados' => $isAdmin ? $mercados : $mercadosArray, // Admin: array completo, Socio: solo nombres
             'articulosDeshabilitados' => $articulosDeshabilitados,
             'montosYaCargados' => $montosYaCargados,
             'articulosNoIncluidos' => $articulosNoIncluidos,

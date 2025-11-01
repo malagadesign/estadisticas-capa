@@ -139,8 +139,8 @@ const articulosPorFamiliaConsolidado = <?= json_encode($articulosPorFamilia) ?>;
 function renderizarConsolidado() {
     const tbody = document.getElementById('consolidado-tbody');
     
-    if (!articulosConsolidado || articulosConsolidado.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + (4 + (mercadosConsolidado.length * 2)) + '" class="text-center">No hay artículos para mostrar</td></tr>';
+    if (!mercadosConsolidado || mercadosConsolidado.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay mercados para mostrar</td></tr>';
         return;
     }
     
