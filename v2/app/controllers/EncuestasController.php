@@ -40,15 +40,22 @@ class EncuestasController {
         // Verificar si es editable
         $esEditable = $encuestaModel->isEditable($encuesta['did']);
         
-        // Cargar rubros, familias, mercados (NO artículos - se cargan por demanda)
+        // Cargar rubros, familias, mercados
         $rubroModel = new Rubro();
         $familiaModel = new Familia();
         $mercadoModel = new Mercado();
         
         $rubros = $rubroModel->getAll();
         $familias = $familiaModel->getAll();
-        // $articulos = NO se carga aquí - carga diferida via AJAX
         $mercados = $mercadoModel->getAll();
+        
+        // Si es admin, cargar TODOS los artículos para el consolidado
+        $articuloModel = null;
+        if (Session::isAdmin()) {
+            $articuloModel = new Articulo();
+            // Precargar artículos solo para admin
+        }
+        // Para socios se cargarán por demanda via AJAX
         
         // Debug: Log de carga
         error_log("DEBUG carga inicial - Rubros: " . count($rubros) . ", Familias: " . count($familias) . ", Mercados: " . count($mercados));
@@ -69,9 +76,19 @@ class EncuestasController {
             $familiasPorRubro[$familia['didRubro']][] = $familia;
         }
         
-        // NO precargar artículos - se cargarán por demanda via AJAX
+        // Precargar artículos solo para admin (para consolidado)
         $articulosArray = [];
-        $articulosPorFamilia = []; // Vacío - se carga por demanda
+        $articulosPorFamilia = [];
+        if ($articuloModel) {
+            $articulos = $articuloModel->getAll();
+            foreach ($articulos as $articulo) {
+                $articulosArray[$articulo['did']] = [
+                    'nombre' => $articulo['nombre'],
+                    'familiaDid' => $articulo['didFamilia']
+                ];
+                $articulosPorFamilia[$articulo['didFamilia']][] = $articulo;
+            }
+        }
         
         $mercadosArray = [];
         foreach ($mercados as $mercado) {
@@ -89,10 +106,14 @@ class EncuestasController {
             $articulosNoIncluidos = $encuestaModel->getArticulosNoIncluidosPorSocios();
             $elapsedTime = round((microtime(true) - $startTime) * 1000, 2);
             error_log("DEBUG admin - getArticulosNoIncluidosPorSocios(): Tardó {$elapsedTime}ms, cantidad: " . count($articulosNoIncluidos));
+            
+            // Admin: cargar consolidado con count de socios
+            $consolidado = $encuestaModel->getConsolidadoAdmin($encuesta['did']);
         } else {
             // Socio: cargar sus datos
             $articulosDeshabilitados = $encuestaModel->getArticulosDeshabilitadosPorSocio($userId);
             $montosYaCargados = $encuestaModel->getMontosYaCargados($encuesta['did'], $userId);
+            $consolidado = [];
         }
         
         View::render('encuestas/ultima', [
@@ -108,6 +129,7 @@ class EncuestasController {
             'articulosDeshabilitados' => $articulosDeshabilitados,
             'montosYaCargados' => $montosYaCargados,
             'articulosNoIncluidos' => $articulosNoIncluidos,
+            'consolidado' => $consolidado,
             'isAdmin' => $isAdmin
         ]);
     }

@@ -103,9 +103,9 @@ class Encuesta {
     public function saveMonto($encuestaDid, $usuarioDid, $articuloDid, $mercadoDid, $tipo, $monto) {
         error_log("DEBUG saveMonto - inicio: encuestaDid=$encuestaDid, usuarioDid=$usuarioDid, articuloDid=$articuloDid, mercadoDid=$mercadoDid, tipo=$tipo, monto=$monto");
         
-        // Verificar si ya existe
+        // Verificar si ya existe (buscar por campos únicos)
         $exists = $this->db->fetchOne(
-            "SELECT did FROM articulosMontos 
+            "SELECT id FROM articulosMontos 
              WHERE didEncuesta = ? 
              AND didUsuario = ? 
              AND didArticulo = ? 
@@ -118,13 +118,13 @@ class Encuesta {
         );
         
         if ($exists) {
-            error_log("DEBUG saveMonto - UPDATE did={$exists['did']}");
+            error_log("DEBUG saveMonto - UPDATE id={$exists['id']}");
             // Update
             $this->db->query(
                 "UPDATE articulosMontos 
                  SET monto = ? 
-                 WHERE did = ?",
-                ['di', $monto, $exists['did']]
+                 WHERE id = ?",
+                ['di', $monto, $exists['id']]
             );
         } else {
             error_log("DEBUG saveMonto - INSERT");
@@ -209,6 +209,56 @@ class Encuesta {
             error_log("DEBUG toggleArticuloSocio - Retornando 0");
             return 0;
         }
+    }
+    
+    /**
+     * Obtener consolidado con cantidad de socios (para admin)
+     */
+    public function getConsolidadoAdmin($encuestaDid) {
+        // Primero obtener lista de socios activos
+        $sociosActivos = $this->db->fetchAll(
+            "SELECT did FROM usuarios 
+             WHERE TRIM(tipo) = 'socio' 
+             AND superado = 0 
+             AND elim = 0 
+             AND habilitado = 1"
+        );
+        
+        if (empty($sociosActivos)) {
+            return [];
+        }
+        
+        $sociosIds = array_column($sociosActivos, 'did');
+        $sociosIn = implode(',', $sociosIds);
+        
+        // Obtener suma de montos Y count de socios por artículo/mercado/tipo
+        $result = $this->db->fetchAll(
+            "SELECT 
+                am.didArticulo, 
+                am.didMercado, 
+                am.tipo,
+                SUM(am.monto) AS monto,
+                COUNT(DISTINCT am.didUsuario) AS socios
+             FROM articulosMontos am
+             WHERE am.didEncuesta = ? 
+             AND am.superado = 0 
+             AND am.elim = 0 
+             AND am.monto > 0 
+             AND am.didUsuario IN ({$sociosIn})
+             GROUP BY am.didArticulo, am.didMercado, am.tipo",
+            ['i', $encuestaDid]
+        );
+        
+        $consolidado = [];
+        foreach ($result as $row) {
+            $key = "{$row['didArticulo']}-{$row['didMercado']}-{$row['tipo']}";
+            $consolidado[$key] = [
+                'monto' => $row['monto'],
+                'socios' => $row['socios']
+            ];
+        }
+        
+        return $consolidado;
     }
     
     /**
