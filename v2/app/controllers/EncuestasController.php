@@ -80,6 +80,7 @@ class EncuestasController {
         $articulosArray = [];
         $articulosPorFamilia = [];
         if ($articuloModel) {
+            $startTime = microtime(true);
             $articulos = $articuloModel->getAll();
             foreach ($articulos as $articulo) {
                 $articulosArray[$articulo['did']] = [
@@ -88,6 +89,8 @@ class EncuestasController {
                 ];
                 $articulosPorFamilia[$articulo['didFamilia']][] = $articulo;
             }
+            $elapsedTime = round((microtime(true) - $startTime) * 1000, 2);
+            error_log("DEBUG admin - getAll() articulos: Tardó {$elapsedTime}ms, cantidad: " . count($articulos));
         }
         
         $mercadosArray = [];
