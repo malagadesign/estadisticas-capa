@@ -17,7 +17,6 @@ class Encuesta {
             "SELECT * FROM encuestas 
              WHERE superado = 0 
              AND elim = 0 
-             AND desde <= NOW() 
              ORDER BY hasta DESC 
              LIMIT 1"
         );
