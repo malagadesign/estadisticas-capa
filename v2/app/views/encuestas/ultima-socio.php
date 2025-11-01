@@ -15,6 +15,12 @@
             Carga de Datos
         </button>
     </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button">
+            <i class="fas fa-file-excel me-2"></i>
+            Carga por Excel
+        </button>
+    </li>
     <?php endif; ?>
 </ul>
 
@@ -48,14 +54,14 @@
                             <!-- Se carga dinámicamente -->
                         </tbody>
                     </table>
-                </div>
+                                                            </div>
                 
                 <div class="d-flex justify-content-between align-items-center mt-3">
                     <small id="articulos-info" class="text-muted"></small>
                     <nav>
                         <ul class="pagination pagination-sm mb-0" id="articulos-paginador"></ul>
                     </nav>
-                </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -72,8 +78,8 @@
                 <p class="text-muted mb-4">
                     Completar o modificar los datos desde esta pantalla directamente. Los datos se guardan automáticamente al salir de cada campo.
                 </p>
-                
-                <div class="table-responsive">
+                    
+                    <div class="table-responsive">
                     <table class="table table-bordered table-sm">
                         <thead class="table-light">
                             <tr>
@@ -91,12 +97,12 @@
                                 <th>Valor en AR$</th>
                                 <th>Cantidad</th>
                                 <th>Valor en AR$</th>
-                            </tr>
-                        </thead>
+                                </tr>
+                            </thead>
                         <tbody id="tabla-carga-datos">
                             <!-- Se carga dinámicamente -->
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -108,11 +114,60 @@
             </div>
         </div>
     </div>
+    
+    <!-- TAB 3: Carga por Excel -->
+    <div class="tab-pane fade" id="excel" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-file-excel me-2"></i>
+                Carga Masiva por Excel
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Descargue el modelo Excel, complételo con sus datos, y súbalo para actualizar toda su información de una vez.
+                </p>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <button class="btn btn-success" onclick="crearArchivoExcel();">
+                            <i class="fas fa-download me-2"></i>
+                            Descargar Modelo Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Complete solo con números (sin formato, sin separadores de miles, sin decimales para cantidades).
+                            Luego súbalo sin cambiar su estructura:
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="input-excel" accept=".xls,.xlsx" onchange="leerArchivoExcel();">
+                            <label class="input-group-text" for="input-excel">
+                                <i class="fas fa-upload me-2"></i>
+                                Subir Excel
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <?php endif; ?>
 </div>
 
-    <?php if ($esEditable): ?>
-    <script>
+<?php if ($esEditable): ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+
+<script>
 // Estado
 const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
 const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
@@ -409,6 +464,219 @@ async function guardarDato(articuloDid, canalDid, tipo, input) {
         showToast('Error de conexión', 'danger');
     }
 }
-    </script>
-    <?php endif; ?>
+
+// Variables globales para Excel
+let celdas = {};
+
+// Función para crear modelo Excel
+async function crearArchivoExcel() {
+    // Esperar a que se carguen todos los artículos
+    if (todosLosArticulos.length === 0) {
+        showToast('Cargando artículos, espere un momento...', 'info');
+        await cargarTodosLosArticulos();
+    }
+    
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('<?= e($encuesta['nombre']) ?>');
+    
+    // Encabezado
+    worksheet.columns = [
+        { header: '#', width: 4 },
+        { header: 'Rubro', width: 20 },
+        { header: 'Familia', width: 25 },
+        { header: 'Artículo', width: 45 }
+    ];
+    
+    // Agregar columnas de mercados
+    Object.keys(mercados).forEach(did => {
+        worksheet.columns.push({ header: mercados[did].nombre + ' - CANTIDAD', width: 15 });
+        worksheet.columns.push({ header: mercados[did].nombre + ' - VALOR', width: 15 });
+    });
+    
+    // Formatear encabezado
+    worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center' };
+    });
+    
+    // Filtrar solo artículos incorporados
+    const articulosIncorporados = todosLosArticulos.filter(a => {
+        return !articulosDeshabilitados[a.did];
+    });
+    
+    // Agregar filas
+    let rowNum = 0;
+    articulosIncorporados.forEach(articulo => {
+        rowNum++;
+        const row = [
+            rowNum,
+            rubros[articulo.rubroDid],
+            articulo.familiaNombre,
+            articulo.nombre
+        ];
+        
+        // Agregar datos para cada mercado
+        Object.keys(mercados).forEach(did => {
+            const keyCant = `${articulo.did}-${did}-1`;
+            const keyVal = `${articulo.did}-${did}-2`;
+            row.push(montosYaCargados[keyCant] || '');
+            row.push(montosYaCargados[keyVal] || '');
+        });
+        
+        worksheet.addRow(row);
+    });
+    
+    // Alinear columnas numéricas
+    for (let i = 2; i <= rowNum + 1; i++) {
+        for (let j = 5; j <= 5 + (Object.keys(mercados).length * 2); j++) {
+            worksheet.getRow(i).getCell(j).alignment = { horizontal: 'right' };
+        }
+    }
+    
+    // Descargar
+    workbook.xlsx.writeBuffer().then(function(buffer) {
+        const blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+        saveAs(blob, "CargaMasivaCAPA.xlsx");
+        showToast('Excel descargado', 'success');
+    });
+}
+
+// Función para leer Excel
+function leerArchivoExcel() {
+    const input = document.getElementById('input-excel');
+    const reader = new FileReader();
+    
+    celdas = {};
+    
+    reader.onload = function(event) {
+        const arrayBuffer = reader.result;
+        const workbook = new ExcelJS.Workbook();
+        workbook.xlsx.load(arrayBuffer).then(function() {
+            const worksheet = workbook.getWorksheet(1);
+            worksheet.eachRow(function(row, rowNumber) {
+                row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+                    const indiceCelda = rowNumber + '-' + colNumber;
+                    celdas[indiceCelda] = cell.value;
+                });
+            });
+            procesarArchivoExcel();
+        });
+    };
+    
+    reader.readAsArrayBuffer(input.files[0]);
+}
+
+// Función para procesar Excel cargado
+async function procesarArchivoExcel() {
+    // Esperar a que se carguen todos los artículos
+    if (todosLosArticulos.length === 0) {
+        showToast('Cargando artículos, espere un momento...', 'info');
+        await cargarTodosLosArticulos();
+    }
+    
+    const articulosIncorporados = todosLosArticulos.filter(a => {
+        return !articulosDeshabilitados[a.did];
+    });
+    
+    let modificaciones = 0;
+    let errores = [];
+    
+    // Validar estructura
+    let rowNumber = 1;
+    let sinErrores = true;
+    
+    articulosIncorporados.forEach(articulo => {
+        rowNumber++;
+        const indiceCelda = rowNumber + '-1';
+        const dato = parseFloat(celdas[indiceCelda]) || 0;
+        
+        if (articulo.did != dato) {
+            sinErrores = false;
+        }
+    });
+    
+    if (!sinErrores) {
+        showToast('Error: Versión de modelo Excel incorrecta', 'danger');
+        return;
+    }
+    
+    // Procesar datos
+    rowNumber = 1;
+    let Amodificaciones = {};
+    
+    articulosIncorporados.forEach(articulo => {
+        rowNumber++;
+        let colNumber = 4;
+        
+        Object.keys(mercados).forEach(did => {
+            // Cantidad
+            colNumber++;
+            let indiceCeldaCant = rowNumber + '-' + colNumber;
+            if (celdas[indiceCeldaCant] != null && celdas[indiceCeldaCant] !== null) {
+                let dato = celdas[indiceCeldaCant];
+                // Limpiar valor (solo números)
+                let datoLimpio = parseFloat(String(dato).replace(/[^0-9]/g, ''));
+                
+                if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                    const indiceMonto = `${articulo.did}-${did}-1`;
+                    const valorActual = montosYaCargados[indiceMonto] || 0;
+                    
+                    if (datoLimpio != valorActual) {
+                        Amodificaciones[indiceMonto] = datoLimpio;
+                    }
+                } else {
+                    errores.push(`${articulo.nombre} - ${mercados[did].nombre} Cantidad: valor inválido`);
+                }
+            }
+            
+            // Valor
+            colNumber++;
+            let indiceCeldaVal = rowNumber + '-' + colNumber;
+            if (celdas[indiceCeldaVal] != null && celdas[indiceCeldaVal] !== null) {
+                let dato = celdas[indiceCeldaVal];
+                let datoLimpio = parseFloat(String(dato).replace(/[^0-9]/g, ''));
+                
+                if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                    const indiceMonto = `${articulo.did}-${did}-2`;
+                    const valorActual = montosYaCargados[indiceMonto] || 0;
+                    
+                    if (datoLimpio != valorActual) {
+                        Amodificaciones[indiceMonto] = datoLimpio;
+                    }
+                } else {
+                    errores.push(`${articulo.nombre} - ${mercados[did].nombre} Valor: valor inválido`);
+                }
+            }
+        });
+    });
+    
+    if (errores.length > 0) {
+        showToast(`Error: Hay valores no numéricos en el Excel (${errores.length} errores)`, 'danger');
+        return;
+    }
+    
+    // Aplicar modificaciones
+    for (let indiceMonto in Amodificaciones) {
+        const partes = indiceMonto.split('-');
+        const articuloDid = parseInt(partes[0]);
+        const canalDid = parseInt(partes[1]);
+        const tipoNum = parseInt(partes[2]);
+        const tipoTexto = tipoNum === 1 ? 'cantidad' : 'valor';
+        
+        // Simular blur en input
+        const inputs = document.querySelectorAll(`input[data-articulo="${articuloDid}"][data-canal="${canalDid}"][data-tipo="${tipoTexto}"]`);
+        if (inputs.length > 0) {
+            inputs[0].value = Amodificaciones[indiceMonto];
+            inputs[0].dispatchEvent(new Event('blur'));
+            modificaciones++;
+        }
+    }
+    
+    showToast(`Archivo procesado: ${modificaciones} celdas modificadas`, 'success');
+    
+    // Limpiar input
+    document.getElementById('input-excel').value = '';
+}
+</script>
+<?php endif; ?>
 
