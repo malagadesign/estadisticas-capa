@@ -470,6 +470,13 @@ let celdas = {};
 
 // Función para crear modelo Excel
 async function crearArchivoExcel() {
+    try {
+        console.group('[Excel] crearArchivoExcel');
+        console.log('ExcelJS presente?', typeof ExcelJS !== 'undefined');
+        console.log('Artículos cargados:', todosLosArticulos.length);
+        console.log('Artículos deshabilitados keys:', Object.keys(articulosDeshabilitados).slice(0,10));
+        console.log('Mercados:', mercados);
+        console.time('[Excel] generar');
     // Esperar a que se carguen todos los artículos
     if (todosLosArticulos.length === 0) {
         showToast('Cargando artículos, espere un momento...', 'info');
@@ -506,6 +513,7 @@ async function crearArchivoExcel() {
     const articulosIncorporados = todosLosArticulos.filter(a => {
         return !articulosDeshabilitados[a.did];
     });
+    console.log('Artículos incorporados:', articulosIncorporados.length);
     
     // Agregar filas
     let rowNum = 0;
@@ -541,32 +549,80 @@ async function crearArchivoExcel() {
         const blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
         saveAs(blob, "CargaMasivaCAPA.xlsx");
         showToast('Excel descargado', 'success');
+        console.timeEnd('[Excel] generar');
+        console.groupEnd();
+    }).catch(function(err){
+        console.error('[Excel] writeBuffer error:', err);
+        console.timeEnd('[Excel] generar');
+        console.groupEnd();
+        showToast('Error generando Excel (ver consola)', 'danger');
     });
+    } catch (e) {
+        console.error('[Excel] crearArchivoExcel error:', e);
+        console.groupEnd();
+        showToast('Error inesperado generando Excel (ver consola)', 'danger');
+    }
 }
 
 // Función para leer Excel
 function leerArchivoExcel() {
     const input = document.getElementById('input-excel');
-    const reader = new FileReader();
     
+    // Validar que hay un archivo seleccionado
+    if (!input || !input.files || !input.files[0]) {
+        showToast('Por favor seleccione un archivo Excel', 'warning');
+        return;
+    }
+    
+    const file = input.files[0];
+    
+    // Validar que es un archivo Excel
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+        showToast('Por favor seleccione un archivo Excel (.xlsx o .xls)', 'warning');
+        return;
+    }
+    
+    console.log('[Excel] Leyendo archivo:', file.name, file.size, 'bytes');
+    
+    const reader = new FileReader();
     celdas = {};
     
-    reader.onload = function(event) {
-        const arrayBuffer = reader.result;
-        const workbook = new ExcelJS.Workbook();
-        workbook.xlsx.load(arrayBuffer).then(function() {
-            const worksheet = workbook.getWorksheet(1);
-            worksheet.eachRow(function(row, rowNumber) {
-                row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
-                    const indiceCelda = rowNumber + '-' + colNumber;
-                    celdas[indiceCelda] = cell.value;
-                });
-            });
-            procesarArchivoExcel();
-        });
+    reader.onerror = function() {
+        console.error('[Excel] Error leyendo archivo');
+        showToast('Error leyendo el archivo', 'danger');
     };
     
-    reader.readAsArrayBuffer(input.files[0]);
+    reader.onload = function(event) {
+        try {
+            console.log('[Excel] Archivo leído, procesando...');
+            const arrayBuffer = reader.result;
+            const workbook = new ExcelJS.Workbook();
+            workbook.xlsx.load(arrayBuffer).then(function() {
+                const worksheet = workbook.getWorksheet(1);
+                if (!worksheet) {
+                    throw new Error('No se encontró la primera hoja en el Excel');
+                }
+                console.log('[Excel] Hoja encontrada:', worksheet.name);
+                
+                worksheet.eachRow(function(row, rowNumber) {
+                    row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+                        const indiceCelda = rowNumber + '-' + colNumber;
+                        celdas[indiceCelda] = cell.value;
+                    });
+                });
+                console.log('[Excel] Celdas leídas:', Object.keys(celdas).length);
+                procesarArchivoExcel();
+            }).catch(function(err) {
+                console.error('[Excel] Error cargando workbook:', err);
+                showToast('Error procesando Excel: ' + err.message, 'danger');
+            });
+        } catch (e) {
+            console.error('[Excel] Error en onload:', e);
+            showToast('Error procesando archivo: ' + e.message, 'danger');
+        }
+    };
+    
+    reader.readAsArrayBuffer(file);
 }
 
 // Función para procesar Excel cargado
