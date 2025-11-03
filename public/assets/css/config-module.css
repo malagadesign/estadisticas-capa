@@ -19,14 +19,16 @@
     box-shadow: 0 4px 12px rgba(157, 78, 221, 0.4);
 }
 
-.btn-outline-capa-purpura {
+.btn-outline-capa-purpura,
+.btn-capa-purpura-outline {
     border: 2px solid #9D4EDD;
     color: #9D4EDD;
     background: transparent;
     transition: all 0.3s ease;
 }
 
-.btn-outline-capa-purpura:hover {
+.btn-outline-capa-purpura:hover,
+.btn-capa-purpura-outline:hover {
     background: #9D4EDD;
     border-color: #9D4EDD;
     color: white;
