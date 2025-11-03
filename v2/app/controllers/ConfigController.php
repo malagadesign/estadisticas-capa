@@ -727,8 +727,15 @@ class ConfigController {
             // Enviar email a cada socio
             $enviados = 0;
             $errores = 0;
+            $emailPrueba = 'micaela@malaga-design.com.ar';
             
             foreach ($socios as $socio) {
+                // MODO PRUEBA: Solo enviar a email de prueba
+                // TODO: Quitar este filtro cuando se confirme que funciona correctamente
+                if ($socio['mail'] !== $emailPrueba) {
+                    continue;
+                }
+                
                 try {
                     MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
                     $enviados++;
