@@ -678,39 +678,60 @@ async function procesarArchivoExcel() {
             // Cantidad
             colNumber++;
             let indiceCeldaCant = rowNumber + '-' + colNumber;
-            if (celdas[indiceCeldaCant] != null && celdas[indiceCeldaCant] !== null) {
-                let dato = celdas[indiceCeldaCant];
-                // Limpiar valor (solo números)
-                let datoLimpio = parseFloat(String(dato).replace(/[^0-9]/g, ''));
+            let valorCelda = celdas[indiceCeldaCant];
+            
+            // Solo procesar si la celda tiene contenido (no null, undefined, ni string vacío)
+            if (valorCelda != null && valorCelda !== undefined && valorCelda !== '') {
+                let dato = String(valorCelda).trim();
                 
-                if (!isNaN(datoLimpio) && datoLimpio >= 0) {
-                    const indiceMonto = `${articulo.did}-${did}-1`;
-                    const valorActual = montosYaCargados[indiceMonto] || 0;
-                    
-                    if (datoLimpio != valorActual) {
-                        Amodificaciones[indiceMonto] = datoLimpio;
-                    }
+                // Si después de trim queda vacío, ignorar
+                if (dato === '') {
+                    console.log(`[Excel] Fila ${rowNumber} - Celda Cantidad ${did} vacía, ignorando`);
                 } else {
-                    errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: valor inválido`);
+                    // Limpiar valor (solo números)
+                    let datoLimpio = parseFloat(dato.replace(/[^0-9]/g, ''));
+                    
+                    if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                        const indiceMonto = `${articulo.did}-${did}-1`;
+                        const valorActual = montosYaCargados[indiceMonto] || 0;
+                        
+                        if (datoLimpio != valorActual) {
+                            Amodificaciones[indiceMonto] = datoLimpio;
+                            console.log(`[Excel] Fila ${rowNumber} - Modificar Cantidad ${did}: ${valorActual} -> ${datoLimpio}`);
+                        }
+                    } else {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: valor inválido (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Cantidad ${did} inválida:`, dato);
+                    }
                 }
             }
             
             // Valor
             colNumber++;
             let indiceCeldaVal = rowNumber + '-' + colNumber;
-            if (celdas[indiceCeldaVal] != null && celdas[indiceCeldaVal] !== null) {
-                let dato = celdas[indiceCeldaVal];
-                let datoLimpio = parseFloat(String(dato).replace(/[^0-9]/g, ''));
+            let valorCeldaVal = celdas[indiceCeldaVal];
+            
+            // Solo procesar si la celda tiene contenido
+            if (valorCeldaVal != null && valorCeldaVal !== undefined && valorCeldaVal !== '') {
+                let dato = String(valorCeldaVal).trim();
                 
-                if (!isNaN(datoLimpio) && datoLimpio >= 0) {
-                    const indiceMonto = `${articulo.did}-${did}-2`;
-                    const valorActual = montosYaCargados[indiceMonto] || 0;
-                    
-                    if (datoLimpio != valorActual) {
-                        Amodificaciones[indiceMonto] = datoLimpio;
-                    }
+                if (dato === '') {
+                    console.log(`[Excel] Fila ${rowNumber} - Celda Valor ${did} vacía, ignorando`);
                 } else {
-                    errores.push(`${articulo.nombre} - ${mercados[did]} Valor: valor inválido`);
+                    let datoLimpio = parseFloat(dato.replace(/[^0-9]/g, ''));
+                    
+                    if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                        const indiceMonto = `${articulo.did}-${did}-2`;
+                        const valorActual = montosYaCargados[indiceMonto] || 0;
+                        
+                        if (datoLimpio != valorActual) {
+                            Amodificaciones[indiceMonto] = datoLimpio;
+                            console.log(`[Excel] Fila ${rowNumber} - Modificar Valor ${did}: ${valorActual} -> ${datoLimpio}`);
+                        }
+                    } else {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Valor: valor inválido (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Valor ${did} inválido:`, dato);
+                    }
                 }
             }
         });
