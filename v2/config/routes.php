@@ -31,6 +31,7 @@ $router->post('/encuestas/upload-excel', 'EncuestasController@uploadExcel');
 $router->post('/encuestas/toggle-articulo', 'EncuestasController@toggleArticulo');
 $router->get('/encuestas/articulos', 'EncuestasController@getArticulosPorFamilia'); // Nueva: carga diferida
 $router->get('/encuestas/seguimiento', 'EncuestasController@seguimiento'); // Nueva: seguimiento admin
+$router->post('/encuestas/enviar-recordatorios', 'EncuestasController@enviarRecordatorios'); // Nueva: enviar recordatorios
 
 // ===============================================
 // USUARIOS (Solo Admin) - MIGRADO DE V1

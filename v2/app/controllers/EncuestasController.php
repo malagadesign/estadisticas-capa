@@ -451,5 +451,126 @@ class EncuestasController {
             'faltan' => array_values($faltan)
         ]);
     }
+    
+    /**
+     * Enviar recordatorios a socios que no completaron la encuesta
+     */
+    public function enviarRecordatorios() {
+        // Verificar autenticación
+        if (!Session::isLoggedIn() || !Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        
+        if (empty($did)) {
+            View::json(['success' => false, 'message' => 'ID de encuesta requerido'], 400);
+        }
+        
+        require_once __DIR__ . '/../../core/MailHelper.php';
+        
+        try {
+            $db = Database::getInstance();
+            
+            // Obtener datos de la encuesta
+            $encuesta = $db->fetchOne(
+                "SELECT * FROM encuestas WHERE did = ? AND elim = 0",
+                ['i', $did]
+            );
+            
+            if (!$encuesta) {
+                View::json(['success' => false, 'message' => 'Encuesta no encontrada'], 404);
+            }
+            
+            // Obtener socios que cargaron datos
+            $completaron = $db->fetchAll(
+                "SELECT DISTINCT u.did 
+                 FROM usuarios u
+                 INNER JOIN articulosMontos am ON u.did = am.didUsuario
+                 WHERE am.didEncuesta = ? 
+                 AND am.superado = 0 
+                 AND am.elim = 0 
+                 AND am.monto > 0
+                 AND TRIM(u.tipo) = 'socio' 
+                 AND u.superado = 0 
+                 AND u.elim = 0 
+                 AND u.habilitado = 1",
+                ['i', $did]
+            );
+            
+            // Obtener todos los socios activos
+            $todosLosSocios = $db->fetchAll(
+                "SELECT did, usuario, mail 
+                 FROM usuarios 
+                 WHERE TRIM(tipo) = 'socio' 
+                 AND superado = 0 
+                 AND elim = 0 
+                 AND habilitado = 1"
+            );
+            
+            // Obtener IDs de los que completaron
+            $completaronIds = array_column($completaron, 'did');
+            
+            // Los que faltan son los que no están en completaron
+            $sociosFaltan = array_filter($todosLosSocios, function($socio) use ($completaronIds) {
+                return !in_array($socio['did'], $completaronIds);
+            });
+            
+            if (empty($sociosFaltan)) {
+                View::json(['success' => false, 'message' => 'Todos los socios han completado la encuesta'], 400);
+            }
+            
+            // Obtener plantilla de email
+            $plantilla = $db->fetchOne(
+                "SELECT * FROM emailsPlantillas WHERE tipo = 'recordatorio' AND habilitado = 1 AND elim = 0"
+            );
+            
+            if (!$plantilla) {
+                View::json(['success' => false, 'message' => 'Plantilla de email no encontrada'], 404);
+            }
+            
+            // Procesar variables dinámicas
+            $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'fecha_vencimiento' => $encuesta['hastaText']
+            ]);
+            
+            $cuerpoHtml = MailHelper::procesarPlantillaPublic($plantilla['cuerpo_html'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'fecha_vencimiento' => $encuesta['hastaText'],
+                'link_sistema' => env('APP_URL', 'https://estadistica-capa.org.ar')
+            ]);
+            
+            // Enviar email a cada socio que falta
+            $enviados = 0;
+            $errores = 0;
+            $emailPrueba = 'micaela@malaga-design.com.ar';
+            
+            foreach ($sociosFaltan as $socio) {
+                // MODO PRUEBA: Solo enviar a email de prueba
+                // TODO: Quitar este filtro cuando se confirme que funciona correctamente
+                if ($socio['mail'] !== $emailPrueba) {
+                    continue;
+                }
+                
+                try {
+                    MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
+                    $enviados++;
+                    error_log("Recordatorio enviado a: {$socio['mail']}");
+                } catch (Exception $e) {
+                    $errores++;
+                    error_log("Error enviando recordatorio a {$socio['mail']}: " . $e->getMessage());
+                }
+            }
+            
+            View::json([
+                'success' => true, 
+                'message' => "Recordatorios enviados: {$enviados} exitosos" . ($errores > 0 ? ", {$errores} errores" : "")
+            ]);
+        } catch (Exception $e) {
+            error_log("Error enviando recordatorios: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al enviar recordatorios'], 500);
+        }
+    }
 }
 

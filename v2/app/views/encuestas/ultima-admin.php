@@ -115,6 +115,17 @@
                             </div>
                         </div>
                         
+                        <?php if ($sociosFaltan > 0): ?>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <button class="btn btn-warning" onclick="enviarRecordatorios()" id="btnRecordatorios">
+                                    <i class="fas fa-bell me-2"></i>
+                                    Enviar Recordatorio a Socios Pendientes
+                                </button>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
                         <!-- Desktop Table -->
                         <div class="table-responsive d-none d-md-block">
                             <table class="table table-striped table-hover">
@@ -165,6 +176,7 @@ const mercadosConsolidado = <?= json_encode($mercados) ?>;
 const familiasPorRubroConsolidado = <?= json_encode($familiasPorRubro) ?>;
 const articulosPorFamiliaConsolidado = <?= json_encode($articulosPorFamilia) ?>;
 const encuestaNombre = '<?= e($encuesta['nombre']) ?>';
+const encuestaDid = <?= $encuesta['did'] ?>;
 
 // Función para renderizar consolidado
 function renderizarConsolidado() {
@@ -356,6 +368,43 @@ function crearArchivoExcelAdmin() {
         let blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
         saveAs(blob, "Consolidado_" + encuestaNombre + ".xlsx");
     });
+}
+
+// Función para enviar recordatorios
+async function enviarRecordatorios() {
+    if (!confirm(`¿Desea enviar recordatorios a los socios que aún no han completado la encuesta "${encuestaNombre}"?`)) {
+        return;
+    }
+    
+    const btn = document.getElementById('btnRecordatorios');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Enviando...';
+    
+    try {
+        const response = await fetch('<?= route('/encuestas/enviar-recordatorios') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ did: encuestaDid })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+        } else {
+            showToast(result.message || 'Error al enviar recordatorios', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
 }
 
 // Cargar al inicializar
