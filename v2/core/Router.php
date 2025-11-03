@@ -64,6 +64,11 @@ class Router {
         // Normalizar: remover doble slash y normalizar
         $url = preg_replace('#/+#', '/', $url);
         
+        // Remover trailing slash excepto para la raíz
+        if ($url !== '/' && substr($url, -1) === '/') {
+            $url = rtrim($url, '/');
+        }
+        
         // Si la URL está vacía, ponerla como /
         if (empty($url) || $url === '/') {
             $url = '/';
