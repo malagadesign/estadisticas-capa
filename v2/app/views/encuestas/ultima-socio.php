@@ -640,17 +640,22 @@ async function procesarArchivoExcel() {
     let modificaciones = 0;
     let errores = [];
     
-    // Validar estructura
+    console.log('[Excel] Procesando:', articulosIncorporados.length, 'artículos incorporados');
+    
+    // Validar estructura (saltar fila 1 que es el header)
     let rowNumber = 1;
     let sinErrores = true;
     
     articulosIncorporados.forEach(articulo => {
-        rowNumber++;
+        rowNumber++; // Ahora rowNumber es 2, 3, 4... (primera fila de datos)
         const indiceCelda = rowNumber + '-1';
         const dato = parseFloat(celdas[indiceCelda]) || 0;
         
+        console.log('[Excel] Validando fila', rowNumber, '- esperado did:', articulo.did, 'encontrado:', dato);
+        
         if (articulo.did != dato) {
             sinErrores = false;
+            console.error('[Excel] Error validación en fila', rowNumber, '- esperado:', articulo.did, 'encontrado:', dato);
         }
     });
     
@@ -659,12 +664,14 @@ async function procesarArchivoExcel() {
         return;
     }
     
-    // Procesar datos
+    console.log('[Excel] Estructura validada correctamente');
+    
+    // Procesar datos (volver a empezar desde fila 1, saltar header)
     rowNumber = 1;
     let Amodificaciones = {};
     
     articulosIncorporados.forEach(articulo => {
-        rowNumber++;
+        rowNumber++; // Ahora rowNumber es 2, 3, 4... (primera fila de datos)
         let colNumber = 4;
         
         Object.keys(mercados).forEach(did => {
