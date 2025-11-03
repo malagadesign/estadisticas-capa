@@ -44,9 +44,9 @@ class MailHelper {
         
         // Determinar tipo de encriptación según puerto
         if ($config['port'] == 465) {
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL
+            $mail->SMTPSecure = 'ssl'; // Puerto 465 usa SSL
         } elseif ($config['port'] == 587) {
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS
+            $mail->SMTPSecure = 'tls'; // Puerto 587 usa TLS (STARTTLS)
         } else {
             // Sin encriptación por defecto
             $mail->SMTPSecure = '';
