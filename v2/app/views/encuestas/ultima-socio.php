@@ -174,7 +174,7 @@ const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
 const rubros = <?= json_encode($rubros) ?>;
 const montosYaCargados = <?= json_encode($montosYaCargados) ?>;
 const encuestaDid = <?= $encuesta['did'] ?>;
-const csrfToken = '<?= csrf_token() ?>';
+// csrfToken ya está declarado en el layout base
 
 let todosLosArticulos = []; // Array con todos los artículos
 let articulosPorRubro = {}; // Para mapeo rápido rubro -> artículos
@@ -479,8 +479,8 @@ async function crearArchivoExcel() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('<?= e($encuesta['nombre']) ?>');
     
-    // Encabezado
-    worksheet.columns = [
+    // Crear encabezado completo
+    const headers = [
         { header: '#', width: 6 },
         { header: 'Rubro', width: 20 },
         { header: 'Familia', width: 25 },
@@ -489,9 +489,12 @@ async function crearArchivoExcel() {
     
     // Agregar columnas de mercados
     Object.keys(mercados).forEach(did => {
-        worksheet.columns.push({ header: String(mercados[did]) + ' - CANTIDAD', width: 15 });
-        worksheet.columns.push({ header: String(mercados[did]) + ' - VALOR', width: 15 });
+        const nombreMercado = mercados[did]; // Ya es un string
+        headers.push({ header: nombreMercado + ' - CANTIDAD', width: 15 });
+        headers.push({ header: nombreMercado + ' - VALOR', width: 15 });
     });
+    
+    worksheet.columns = headers;
     
     // Formatear encabezado
     worksheet.getRow(1).eachCell((cell) => {
@@ -625,7 +628,7 @@ async function procesarArchivoExcel() {
                         Amodificaciones[indiceMonto] = datoLimpio;
                     }
                 } else {
-                    errores.push(`${articulo.nombre} - ${String(mercados[did])} Cantidad: valor inválido`);
+                    errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: valor inválido`);
                 }
             }
             
@@ -644,7 +647,7 @@ async function procesarArchivoExcel() {
                         Amodificaciones[indiceMonto] = datoLimpio;
                     }
                 } else {
-                    errores.push(`${articulo.nombre} - ${String(mercados[did])} Valor: valor inválido`);
+                    errores.push(`${articulo.nombre} - ${mercados[did]} Valor: valor inválido`);
                 }
             }
         });
