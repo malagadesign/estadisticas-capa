@@ -34,7 +34,8 @@ class ConfigController {
         
         View::render('config/mercados', [
             'title' => 'Mercados - CAPA',
-            'mercados' => $mercados
+            'mercados' => $mercados,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -147,7 +148,8 @@ class ConfigController {
         
         View::render('config/rubros', [
             'title' => 'Rubros - CAPA',
-            'rubros' => $rubros
+            'rubros' => $rubros,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -272,7 +274,8 @@ class ConfigController {
         View::render('config/familias', [
             'title' => 'Familias - CAPA',
             'familias' => $familias,
-            'rubros' => $rubros
+            'rubros' => $rubros,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -399,7 +402,8 @@ class ConfigController {
         View::render('config/articulos', [
             'title' => 'Artículos - CAPA',
             'articulos' => $articulos,
-            'familias' => $familias
+            'familias' => $familias,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -519,7 +523,8 @@ class ConfigController {
         
         View::render('config/encuestas', [
             'title' => 'Encuestas - CAPA',
-            'encuestas' => $encuestas
+            'encuestas' => $encuestas,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -772,7 +777,8 @@ class ConfigController {
         
         View::render('config/notificaciones', [
             'title' => 'Plantillas de Notificaciones - CAPA',
-            'plantillas' => $plantillas
+            'plantillas' => $plantillas,
+            'css' => ['css/config-module.css']
         ]);
     }
     
