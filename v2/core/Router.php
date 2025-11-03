@@ -64,7 +64,7 @@ class Router {
         // Normalizar: remover doble slash y normalizar
         $url = preg_replace('#/+#', '/', $url);
         
-        // Remover trailing slash excepto para la raíz
+        // Normalizar: remover trailing slash excepto para la raíz
         if ($url !== '/' && substr($url, -1) === '/') {
             $url = rtrim($url, '/');
         }
@@ -77,6 +77,10 @@ class Router {
         // Si la URL ya tiene /v2/, usarla tal cual
         // Si no tiene /v2/, agregarlo
         if (strpos($url, '/v2') === 0) {
+            // Si es exactamente /v2 o /v2/, convertir a /v2 (raíz)
+            if ($url === '/v2' || $url === '/v2/') {
+                $url = '/v2';
+            }
             // Ya tiene /v2/, usar tal cual
         } else {
             // No tiene /v2/, agregarlo
