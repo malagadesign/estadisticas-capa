@@ -41,7 +41,17 @@ class MailHelper {
         $mail->SMTPAuth = true;
         $mail->Username = $config['user'];
         $mail->Password = $config['password'];
-        $mail->SMTPSecure = 'ssl'; // Puerto 465 usa SSL
+        
+        // Determinar tipo de encriptación según puerto
+        if ($config['port'] == 465) {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL
+        } elseif ($config['port'] == 587) {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS
+        } else {
+            // Sin encriptación por defecto
+            $mail->SMTPSecure = '';
+        }
+        
         $mail->Port = $config['port'];
         $mail->setFrom($config['user'], $config['from_name']);
         $mail->addReplyTo($config['reply_to'], $config['from_name']);

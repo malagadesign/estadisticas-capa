@@ -727,35 +727,17 @@ class ConfigController {
             // Enviar email a cada socio
             $enviados = 0;
             $errores = 0;
-            $emailPrueba = 'micaela@malaga-design.com.ar';
-            
-            error_log("===== NOTIFICAR SOCIOS - INICIO =====");
-            error_log("Total socios encontrados: " . count($socios));
-            error_log("ENVIRONMENT: " . env('ENVIRONMENT'));
             
             foreach ($socios as $socio) {
-                error_log("Procesando socio: {$socio['usuario']} ({$socio['mail']})");
-                
-                // TODO: En producción, quitar este filtro
-                // Por ahora solo enviamos a email de prueba
-                if ($socio['mail'] !== $emailPrueba) {
-                    error_log("Saltando: no es email de prueba");
-                    continue;
-                }
-                
                 try {
-                    error_log("Enviando email a: {$socio['mail']}");
                     MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
                     $enviados++;
-                    error_log("✅ Email enviado exitosamente a: {$socio['mail']}");
+                    error_log("Email enviado exitosamente a: {$socio['mail']}");
                 } catch (Exception $e) {
                     $errores++;
-                    error_log("❌ Error enviando email a {$socio['mail']}: " . $e->getMessage());
+                    error_log("Error enviando email a {$socio['mail']}: " . $e->getMessage());
                 }
             }
-            
-            error_log("Total enviados: $enviados, Errores: $errores");
-            error_log("===== NOTIFICAR SOCIOS - FIN =====");
             
             View::json([
                 'success' => true, 
