@@ -481,7 +481,7 @@ async function crearArchivoExcel() {
     
     // Encabezado
     worksheet.columns = [
-        { header: '#', width: 4 },
+        { header: '#', width: 6 },
         { header: 'Rubro', width: 20 },
         { header: 'Familia', width: 25 },
         { header: 'Artículo', width: 45 }
@@ -489,8 +489,8 @@ async function crearArchivoExcel() {
     
     // Agregar columnas de mercados
     Object.keys(mercados).forEach(did => {
-        worksheet.columns.push({ header: mercados[did].nombre + ' - CANTIDAD', width: 15 });
-        worksheet.columns.push({ header: mercados[did].nombre + ' - VALOR', width: 15 });
+        worksheet.columns.push({ header: String(mercados[did]) + ' - CANTIDAD', width: 15 });
+        worksheet.columns.push({ header: String(mercados[did]) + ' - VALOR', width: 15 });
     });
     
     // Formatear encabezado
@@ -509,7 +509,7 @@ async function crearArchivoExcel() {
     articulosIncorporados.forEach(articulo => {
         rowNum++;
         const row = [
-            rowNum,
+            articulo.did, // importante para validación del modelo
             rubros[articulo.rubroDid],
             articulo.familiaNombre,
             articulo.nombre
@@ -625,7 +625,7 @@ async function procesarArchivoExcel() {
                         Amodificaciones[indiceMonto] = datoLimpio;
                     }
                 } else {
-                    errores.push(`${articulo.nombre} - ${mercados[did].nombre} Cantidad: valor inválido`);
+                    errores.push(`${articulo.nombre} - ${String(mercados[did])} Cantidad: valor inválido`);
                 }
             }
             
@@ -644,7 +644,7 @@ async function procesarArchivoExcel() {
                         Amodificaciones[indiceMonto] = datoLimpio;
                     }
                 } else {
-                    errores.push(`${articulo.nombre} - ${mercados[did].nombre} Valor: valor inválido`);
+                    errores.push(`${articulo.nombre} - ${String(mercados[did])} Valor: valor inválido`);
                 }
             }
         });
