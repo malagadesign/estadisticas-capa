@@ -498,9 +498,9 @@ class EncuestasController {
                 ['i', $did]
             );
             
-            // Obtener todos los socios activos
+            // Obtener todos los socios activos con su hash
             $todosLosSocios = $db->fetchAll(
-                "SELECT did, usuario, mail 
+                "SELECT did, usuario, mail, hash 
                  FROM usuarios 
                  WHERE TRIM(tipo) = 'socio' 
                  AND superado = 0 
@@ -529,22 +529,11 @@ class EncuestasController {
                 View::json(['success' => false, 'message' => 'Plantilla de email no encontrada'], 404);
             }
             
-            // Procesar variables dinámicas
-            $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
-                'nombre_encuesta' => $encuesta['nombre'],
-                'fecha_vencimiento' => $encuesta['hastaText']
-            ]);
-            
-            $cuerpoHtml = MailHelper::procesarPlantillaPublic($plantilla['cuerpo_html'], [
-                'nombre_encuesta' => $encuesta['nombre'],
-                'fecha_vencimiento' => $encuesta['hastaText'],
-                'link_sistema' => env('APP_URL', 'https://estadistica-capa.org.ar')
-            ]);
-            
             // Enviar email a cada socio que falta
             $enviados = 0;
             $errores = 0;
             $emailPrueba = 'micaela@malaga-design.com.ar';
+            $appUrl = env('APP_URL', 'https://estadistica-capa.org.ar');
             
             foreach ($sociosFaltan as $socio) {
                 // MODO PRUEBA: Solo enviar a email de prueba
@@ -552,6 +541,28 @@ class EncuestasController {
                 if ($socio['mail'] !== $emailPrueba) {
                     continue;
                 }
+                
+                // Verificar que el socio tenga hash
+                if (empty($socio['hash'])) {
+                    error_log("Socio {$socio['usuario']} no tiene hash, saltando");
+                    continue;
+                }
+                
+                // Generar link de acceso personalizado
+                $linkAcceso = $appUrl . "/v2/log?h=" . $socio['hash'];
+                
+                // Procesar variables dinámicas para este socio
+                $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
+                    'nombre_encuesta' => $encuesta['nombre'],
+                    'fecha_vencimiento' => $encuesta['hastaText']
+                ]);
+                
+                $cuerpoHtml = MailHelper::procesarPlantillaPublic($plantilla['cuerpo_html'], [
+                    'nombre_encuesta' => $encuesta['nombre'],
+                    'fecha_vencimiento' => $encuesta['hastaText'],
+                    'link_sistema' => $appUrl,
+                    'link_acceso' => $linkAcceso
+                ]);
                 
                 try {
                     MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
