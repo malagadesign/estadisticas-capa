@@ -77,6 +77,10 @@ $router->post('/config/encuestas/create', 'ConfigController@encuestas_create');
 $router->post('/config/encuestas/update', 'ConfigController@encuestas_update');
 $router->post('/config/encuestas/delete', 'ConfigController@encuestas_delete');
 
+// Notificaciones (Plantillas de Email)
+$router->get('/config/notificaciones', 'ConfigController@notificaciones');
+$router->post('/config/notificaciones/update', 'ConfigController@notificaciones_update');
+
 // ===============================================
 // CUENTA (Todos)
 // ===============================================

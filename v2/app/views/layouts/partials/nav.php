@@ -76,6 +76,11 @@ $currentPath = Request::url();
                                 <i class="fas fa-clipboard-list me-2"></i> Encuestas
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item" href="<?= route('/config/notificaciones') ?>">
+                                <i class="fas fa-bell me-2"></i> Notificaciones
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 

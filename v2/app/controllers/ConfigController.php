@@ -654,4 +654,61 @@ class ConfigController {
             View::json(['success' => false, 'message' => 'Error al eliminar'], 500);
         }
     }
+    
+    // ============================================
+    // NOTIFICACIONES (Plantillas de Email)
+    // ============================================
+    
+    /**
+     * Listar plantillas de email
+     */
+    public function notificaciones() {
+        if (!Session::isAdmin()) {
+            View::forbidden();
+        }
+        
+        $db = Database::getInstance();
+        $plantillas = $db->fetchAll(
+            "SELECT * FROM emailsPlantillas 
+             WHERE elim = 0 AND superado = 0 
+             ORDER BY did ASC"
+        );
+        
+        View::render('config/notificaciones', [
+            'title' => 'Plantillas de Notificaciones - CAPA',
+            'plantillas' => $plantillas
+        ]);
+    }
+    
+    /**
+     * Actualizar plantilla de email
+     */
+    public function notificaciones_update() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        $asunto = Request::post('asunto');
+        $cuerpoHtml = Request::post('cuerpo_html');
+        
+        if (empty($did) || empty($asunto) || empty($cuerpoHtml)) {
+            View::json(['success' => false, 'message' => 'Datos incompletos'], 400);
+        }
+        
+        try {
+            $db = Database::getInstance();
+            $db->query(
+                "UPDATE emailsPlantillas 
+                 SET asunto = ?, cuerpo_html = ? 
+                 WHERE did = ? AND elim = 0",
+                ['ssi', $asunto, $cuerpoHtml, $did]
+            );
+            
+            View::json(['success' => true, 'message' => 'Plantilla actualizada correctamente']);
+        } catch (Exception $e) {
+            error_log("Error actualizando plantilla: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
+        }
+    }
 }
