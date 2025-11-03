@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../../core/MailHelper.php';
 
 class UsuariosController {
     
@@ -145,6 +146,16 @@ class UsuariosController {
                  VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?)",
                 ['isssssii', $nextDid, $usuario, $mail, $passwordHash, $auxHash, $tipo, $habilitado, Session::get('user_id', 0)]
             );
+            
+            // Enviar emails solo si el usuario está habilitado
+            if ($habilitado == 1) {
+                // Solo para socios: enviar email con link de acceso
+                if ($tipo === 'socio') {
+                    MailHelper::enviarBienvenida($usuario, $mail, $auxHash);
+                }
+                // Notificación a admin
+                MailHelper::notificarAdmin($nextDid, $usuario, $mail, $tipo);
+            }
             
             View::json(['success' => true, 'message' => 'Usuario creado correctamente']);
         } catch (Exception $e) {

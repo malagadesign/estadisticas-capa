@@ -54,6 +54,15 @@ define('APP_VERSION', '2.0');
 define('APP_URL', env('APP_URL', 'https://estadistica-capa.org.ar'));
 define('ASSETS_URL', APP_URL . '/public/assets');
 
+// Configuración de Email
+define('MAIL_HOST', env('MAIL_HOST', 'smtp.office365.com'));
+define('MAIL_PORT', env('MAIL_PORT', '587'));
+define('MAIL_USER', env('MAIL_USER', ''));
+define('MAIL_PASSWORD', env('MAIL_PASSWORD', ''));
+define('MAIL_FROM_NAME', env('MAIL_FROM_NAME', 'CAPA'));
+define('MAIL_REPLY_TO', env('MAIL_REPLY_TO', 'capa@capa.org.ar'));
+define('ADMIN_EMAIL', env('ADMIN_EMAIL', 'capa@capa.org.ar'));
+
 // Paths
 define('ROOT_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', ROOT_PATH . '/public');

@@ -7,6 +7,7 @@
 // RUTAS PÚBLICAS (sin autenticación)
 // ===============================================
 $router->get('/', 'AuthController@showLogin');
+$router->get('/log', 'AuthController@showLogin'); // Login por hash (mantiene compatibilidad v1)
 $router->post('/login', 'AuthController@login');
 
 // ===============================================
