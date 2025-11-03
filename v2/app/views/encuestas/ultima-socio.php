@@ -182,6 +182,12 @@ let articulosPorFamiliaMap = {}; // Para mapeo rápido familia -> artículos
 let paginaActual = 1;
 const articulosPorPagina = 50;
 
+// Función auxiliar: obtener nombre del artículo por did
+function obtenerNombreArticulo(did) {
+    const articulo = todosLosArticulos.find(a => a.did === did);
+    return articulo ? articulo.nombre : `Artículo ${did}`;
+}
+
 // Cargar todos los artículos de todas las familias
 async function cargarTodosLosArticulos() {
     const tbody = document.getElementById('articulos-tbody');
@@ -295,7 +301,9 @@ async function cfgToggle(didArticulo, checkbox) {
         const result = await response.json();
         
         if (result.success) {
-            showToast('Modificación exitosa', 'success');
+            const nombreArticulo = obtenerNombreArticulo(didArticulo);
+            const estadoTexto = result.habilitado ? 'habilitado' : 'deshabilitado';
+            showToast(`${nombreArticulo}: ${estadoTexto} correctamente`, 'success');
             // Actualizar estado en articulosDeshabilitados
             if (result.habilitado == 1) {
                 delete articulosDeshabilitados[didArticulo];
@@ -378,37 +386,37 @@ function renderizarTablaCarga(pagina = 1) {
                 <td>${a.familiaNombre}</td>
                 <td>${a.nombre}</td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 1, 'cantidad', this)"
                            placeholder="0" step="1" value="${cant1}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 1, 'valor', this)"
                            placeholder="0.00" step="0.01" value="${val1}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 2, 'cantidad', this)"
                            placeholder="0" step="1" value="${cant2}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 2, 'valor', this)"
                            placeholder="0.00" step="0.01" value="${val2}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 3, 'cantidad', this)"
                            placeholder="0" step="1" value="${cant3}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm" 
+                    <input type="number" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 3, 'valor', this)"
                            placeholder="0.00" step="0.01" value="${val3}">
@@ -418,6 +426,24 @@ function renderizarTablaCarga(pagina = 1) {
     }
     
     tbody.innerHTML = html;
+    
+    // Agregar navegación Enter/Tab a los inputs
+    const inputs = document.querySelectorAll('#tabla-carga-datos .input-carga-datos');
+    inputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const articuloDid = parseInt(this.dataset.articulo);
+                const canalDid = parseInt(this.dataset.canal);
+                const tipo = this.dataset.tipo;
+                
+                guardarDato(articuloDid, canalDid, tipo, this).then(() => {
+                    navegarSiguienteCelda(this, 'next');
+                });
+            }
+            // Tab ya navega por defecto, solo guardamos en blur
+        });
+    });
     
     // Actualizar info y paginador
     document.getElementById('carga-info').textContent = total ? `Mostrando ${desde + 1}-${hasta} de ${total}` : '';
@@ -429,10 +455,65 @@ function renderizarTablaCarga(pagina = 1) {
     }
     document.getElementById('carga-paginador').innerHTML = pHtml;
 }
+// Validar y normalizar valor
+function validarYNormalizar(valorTexto, tipo) {
+    // Eliminar espacios y caracteres no numéricos excepto punto decimal
+    let valorLimpio = String(valorTexto).trim().replace(/[^\d.]/g, '');
+    
+    // Para cantidades: solo enteros (sin decimales)
+    if (tipo === 'cantidad') {
+        // Remover cualquier punto decimal
+        valorLimpio = valorLimpio.replace(/\./g, '');
+        const valorNum = parseInt(valorLimpio) || 0;
+        if (valorNum < 0) return { valido: false, valor: 0, error: 'No puede ser negativo' };
+        return { valido: true, valor: valorNum, error: null };
+    }
+    
+    // Para valores: acepta decimales
+    const valorNum = parseFloat(valorLimpio) || 0;
+    if (valorNum < 0) return { valido: false, valor: 0, error: 'No puede ser negativo' };
+    return { valido: true, valor: valorNum, error: null };
+}
+
+// Navegar a la siguiente celda
+function navegarSiguienteCelda(input, direccion = 'next') {
+    const todasLasCeldas = Array.from(document.querySelectorAll('#tabla-carga-datos input[type="number"]'));
+    const indiceActual = todasLasCeldas.indexOf(input);
+    
+    if (direccion === 'next' && indiceActual < todasLasCeldas.length - 1) {
+        todasLasCeldas[indiceActual + 1].focus();
+        todasLasCeldas[indiceActual + 1].select();
+    } else if (direccion === 'prev' && indiceActual > 0) {
+        todasLasCeldas[indiceActual - 1].focus();
+        todasLasCeldas[indiceActual - 1].select();
+    }
+}
 
 // Guardar dato
 async function guardarDato(articuloDid, canalDid, tipo, input) {
-    const valor = parseFloat(input.value) || 0;
+    // Validar antes de guardar
+    const validacion = validarYNormalizar(input.value, tipo);
+    
+    if (!validacion.valido) {
+        input.value = '';
+        input.classList.add('is-invalid');
+        setTimeout(() => input.classList.remove('is-invalid'), 3000);
+        const nombreArticulo = obtenerNombreArticulo(articuloDid);
+        const nombreCanal = mercados[canalDid] || `Canal ${canalDid}`;
+        showToast(`${nombreArticulo} - ${nombreCanal} (${tipo}): ${validacion.error}`, 'danger');
+        input.focus();
+        return;
+    }
+    
+    // Normalizar el valor en el input
+    if (tipo === 'cantidad') {
+        input.value = validacion.valor;
+    } else {
+        // Para valores, mantener hasta 2 decimales
+        input.value = validacion.valor.toFixed(2);
+    }
+    
+    const valor = validacion.valor;
     console.log(`Guardando: artículo=${articuloDid}, canal=${canalDid}, tipo=${tipo}, valor=${valor}`);
     
     try {
@@ -449,19 +530,28 @@ async function guardarDato(articuloDid, canalDid, tipo, input) {
         });
         
         if (response.success) {
+            // Actualizar montosYaCargados
+            const indiceMonto = `${articuloDid}-${canalDid}-${tipo === 'cantidad' ? 1 : 2}`;
+            montosYaCargados[indiceMonto] = valor;
+            
             input.classList.add('is-valid');
             setTimeout(() => input.classList.remove('is-valid'), 2000);
-            showToast('Dato guardado', 'success');
+            
+            const nombreArticulo = obtenerNombreArticulo(articuloDid);
+            showToast(`${nombreArticulo}: ${tipo} guardado`, 'success');
         } else {
             input.classList.add('is-invalid');
-            setTimeout(() => input.classList.remove('is-invalid'), 2000);
-            showToast(response.message || 'Error al guardar', 'danger');
+            setTimeout(() => input.classList.remove('is-invalid'), 3000);
+            const nombreArticulo = obtenerNombreArticulo(articuloDid);
+            const nombreCanal = mercados[canalDid] || `Canal ${canalDid}`;
+            showToast(`${nombreArticulo} - ${nombreCanal}: ${response.message || 'Error al guardar'}`, 'danger');
         }
     } catch (error) {
         console.error('Error:', error);
         input.classList.add('is-invalid');
-        setTimeout(() => input.classList.remove('is-invalid'), 2000);
-        showToast('Error de conexión', 'danger');
+        setTimeout(() => input.classList.remove('is-invalid'), 3000);
+        const nombreArticulo = obtenerNombreArticulo(articuloDid);
+        showToast(`${nombreArticulo}: Error de conexión`, 'danger');
     }
 }
 
