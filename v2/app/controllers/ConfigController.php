@@ -507,7 +507,12 @@ class ConfigController {
         
         $db = Database::getInstance();
         $encuestas = $db->fetchAll(
-            "SELECT * FROM encuestas 
+            "SELECT *, 
+             (CASE 
+                WHEN habilitado = 1 AND desde <= CURDATE() AND hasta >= CURDATE() THEN 1 
+                ELSE 0 
+              END) AS vigente
+             FROM encuestas 
              WHERE superado = 0 AND elim = 0 
              ORDER BY desdeText DESC"
         );
