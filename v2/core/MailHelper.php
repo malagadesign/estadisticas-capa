@@ -17,11 +17,11 @@ class MailHelper {
      */
     private static function getConfig() {
         return [
-            'host' => env('MAIL_HOST', 'smtp.office365.com'),
-            'port' => env('MAIL_PORT', '587'),
+            'host' => env('MAIL_HOST', 'vps-1306543-x.dattaweb.com'),
+            'port' => env('MAIL_PORT', '465'),
             'user' => env('MAIL_USER', ''),
             'password' => env('MAIL_PASSWORD', ''),
-            'from_name' => env('MAIL_FROM_NAME', 'CAPA'),
+            'from_name' => env('MAIL_FROM_NAME', 'CAPA ESTADISTICA'),
             'reply_to' => env('MAIL_REPLY_TO', 'capa@capa.org.ar'),
             'admin_email' => env('ADMIN_EMAIL', 'capa@capa.org.ar'),
             'debug' => env('ENVIRONMENT', 'production') === 'development' ? 2 : 0
@@ -41,7 +41,7 @@ class MailHelper {
         $mail->SMTPAuth = true;
         $mail->Username = $config['user'];
         $mail->Password = $config['password'];
-        $mail->SMTPSecure = 'tls';
+        $mail->SMTPSecure = 'ssl'; // Puerto 465 usa SSL
         $mail->Port = $config['port'];
         $mail->setFrom($config['user'], $config['from_name']);
         $mail->addReplyTo($config['reply_to'], $config['from_name']);
