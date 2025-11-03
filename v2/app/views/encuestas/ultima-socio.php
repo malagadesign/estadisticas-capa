@@ -742,24 +742,53 @@ async function procesarArchivoExcel() {
         return;
     }
     
-    // Aplicar modificaciones
+    // Aplicar modificaciones - guardar directamente
+    console.log('[Excel] Aplicando', Object.keys(Amodificaciones).length, 'modificaciones');
+    
     for (let indiceMonto in Amodificaciones) {
         const partes = indiceMonto.split('-');
         const articuloDid = parseInt(partes[0]);
         const canalDid = parseInt(partes[1]);
         const tipoNum = parseInt(partes[2]);
         const tipoTexto = tipoNum === 1 ? 'cantidad' : 'valor';
+        const valor = Amodificaciones[indiceMonto];
         
-        // Simular blur en input
-        const inputs = document.querySelectorAll(`input[data-articulo="${articuloDid}"][data-canal="${canalDid}"][data-tipo="${tipoTexto}"]`);
-        if (inputs.length > 0) {
-            inputs[0].value = Amodificaciones[indiceMonto];
-            inputs[0].dispatchEvent(new Event('blur'));
-            modificaciones++;
+        console.log(`[Excel] Guardando: artículo=${articuloDid}, canal=${canalDid}, tipo=${tipoTexto}, valor=${valor}`);
+        
+        try {
+            const response = await fetchCapa('<?= route('/encuestas/guardar-dato') ?>', {
+                method: 'POST',
+                body: JSON.stringify({
+                    csrf_token: csrfToken,
+                    encuestaDid: encuestaDid,
+                    articuloDid: articuloDid,
+                    canalDid: canalDid,
+                    tipo: tipoTexto,
+                    monto: valor
+                })
+            });
+            
+            if (response.success) {
+                // Actualizar el objeto montosYaCargados para reflejar el cambio
+                montosYaCargados[indiceMonto] = valor;
+                modificaciones++;
+                console.log(`[Excel] ✓ Guardado correctamente: ${indiceMonto} = ${valor}`);
+            } else {
+                console.error(`[Excel] ✗ Error guardando ${indiceMonto}:`, response.message);
+                errores.push(`Error guardando ${indiceMonto}: ${response.message}`);
+            }
+        } catch (error) {
+            console.error(`[Excel] ✗ Error de conexión guardando ${indiceMonto}:`, error);
+            errores.push(`Error de conexión guardando ${indiceMonto}`);
         }
     }
     
-    showToast(`Archivo procesado: ${modificaciones} celdas modificadas`, 'success');
+    if (errores.length > 0) {
+        showToast(`Procesado con ${modificaciones} exitosas y ${errores.length} errores`, 'warning');
+        console.error('[Excel] Errores:', errores);
+    } else {
+        showToast(`Archivo procesado: ${modificaciones} celdas guardadas correctamente`, 'success');
+    }
     
     // Limpiar input
     document.getElementById('input-excel').value = '';
