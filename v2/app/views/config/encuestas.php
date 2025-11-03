@@ -26,7 +26,7 @@
                                     <th width="150">Desde</th>
                                     <th width="150">Hasta</th>
                                     <th width="120">Habilitado</th>
-                                    <th width="150">Acciones</th>
+                                    <th width="200">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -52,17 +52,17 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <?php if (!empty($encuesta['vigente'])): ?>
-                                                    <button class="btn btn-sm btn-success" onclick="notificarSocios(<?= $encuesta['did'] ?>, '<?= e($encuesta['nombre']) ?>')" title="Notificar a Socios">
-                                                        <i class="fas fa-bell"></i>
-                                                    </button>
-                                                <?php endif; ?>
                                                 <button class="btn btn-sm btn-capa-purpura-outline" onclick="abrirModal(<?= $encuesta['did'] ?>)" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-danger" onclick="eliminarEncuesta(<?= $encuesta['did'] ?>, '<?= e($encuesta['nombre']) ?>')" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                <?php if (!empty($encuesta['vigente'])): ?>
+                                                    <button class="btn btn-sm btn-capa-purpura-outline" onclick="notificarSocios(<?= $encuesta['did'] ?>, '<?= e($encuesta['nombre']) ?>')" title="Notificar a Socios">
+                                                        <i class="fas fa-bell"></i>
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
