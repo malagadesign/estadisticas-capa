@@ -36,7 +36,11 @@ class Router {
      * Formatear path
      */
     private function formatPath($path) {
-        return '/v2' . (rtrim($path, '/') ?: '/');
+        // Si el path es la raíz, retornar solo /v2 sin trailing slash
+        if ($path === '/') {
+            return '/v2';
+        }
+        return '/v2' . rtrim($path, '/');
     }
     
     /**
