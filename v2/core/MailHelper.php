@@ -69,11 +69,44 @@ class MailHelper {
      * Reemplazar variables en plantilla
      */
     private static function procesarPlantilla($plantilla, $variables = []) {
-        $html = $plantilla['cuerpo_html'];
+        $html = is_array($plantilla) ? $plantilla['cuerpo_html'] : $plantilla;
         foreach ($variables as $key => $value) {
             $html = str_replace('{' . $key . '}', $value, $html);
         }
         return $html;
+    }
+    
+    /**
+     * Procesar plantilla (versión pública para uso en controladores)
+     */
+    public static function procesarPlantillaPublic($plantilla, $variables = []) {
+        return self::procesarPlantilla($plantilla, $variables);
+    }
+    
+    /**
+     * Enviar email genérico con HTML
+     */
+    public static function enviarEmail($email, $asunto, $cuerpoHtml) {
+        $config = self::getConfig();
+        
+        // Validar configuración
+        if (empty($config['user']) || empty($config['password'])) {
+            throw new Exception("Credenciales de email no configuradas");
+        }
+        
+        try {
+            $mail = self::setupMailer();
+            $mail->addAddress($email);
+            $mail->Subject = $asunto;
+            $mail->Body = $cuerpoHtml;
+            
+            $mail->send();
+            error_log("MailHelper: Email enviado a {$email}");
+            return true;
+        } catch (Exception $e) {
+            error_log("MailHelper Error enviando email a {$email}: " . $mail->ErrorInfo);
+            throw new Exception("Error enviando email: " . $mail->ErrorInfo);
+        }
     }
     
     /**

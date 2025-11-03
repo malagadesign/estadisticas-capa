@@ -655,6 +655,97 @@ class ConfigController {
         }
     }
     
+    /**
+     * Notificar a socios sobre nueva encuesta
+     */
+    public function encuestas_notificar() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        
+        if (empty($did)) {
+            View::json(['success' => false, 'message' => 'ID de encuesta requerido'], 400);
+        }
+        
+        require_once __DIR__ . '/../../core/MailHelper.php';
+        
+        try {
+            $db = Database::getInstance();
+            
+            // Obtener datos de la encuesta
+            $encuesta = $db->fetchOne(
+                "SELECT * FROM encuestas WHERE did = ? AND elim = 0",
+                ['i', $did]
+            );
+            
+            if (!$encuesta) {
+                View::json(['success' => false, 'message' => 'Encuesta no encontrada'], 404);
+            }
+            
+            // Obtener socios activos
+            $socios = $db->fetchAll(
+                "SELECT * FROM usuarios WHERE TRIM(tipo) = 'socio' AND habilitado = 1 AND elim = 0"
+            );
+            
+            if (empty($socios)) {
+                View::json(['success' => false, 'message' => 'No hay socios activos para notificar'], 400);
+            }
+            
+            // Obtener plantilla de email
+            $plantilla = $db->fetchOne(
+                "SELECT * FROM emailsPlantillas WHERE tipo = 'nueva_encuesta' AND habilitado = 1 AND elim = 0"
+            );
+            
+            if (!$plantilla) {
+                View::json(['success' => false, 'message' => 'Plantilla de email no encontrada'], 404);
+            }
+            
+            // Procesar variables dinámicas
+            $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'periodo' => $encuesta['desdeText'] . ' - ' . $encuesta['hastaText']
+            ]);
+            
+            $cuerpoHtml = MailHelper::procesarPlantillaPublic($plantilla['cuerpo_html'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'periodo' => $encuesta['desdeText'] . ' - ' . $encuesta['hastaText'],
+                'link_sistema' => env('APP_URL', 'https://estadistica-capa.org.ar')
+            ]);
+            
+            // Enviar email a cada socio
+            $enviados = 0;
+            $errores = 0;
+            
+            foreach ($socios as $socio) {
+                // En modo de prueba, solo enviar al email de prueba
+                if (env('ENVIRONMENT') === 'development' || isset($_GET['test'])) {
+                    if ($socio['mail'] !== 'micaela@malaga-design.com.ar') {
+                        continue; // Saltar socios que no son de prueba
+                    }
+                }
+                
+                try {
+                    MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
+                    $enviados++;
+                    error_log("Email enviado a: {$socio['mail']}");
+                } catch (Exception $e) {
+                    $errores++;
+                    error_log("Error enviando email a {$socio['mail']}: " . $e->getMessage());
+                }
+            }
+            
+            View::json([
+                'success' => true, 
+                'message' => "Notificaciones enviadas: {$enviados} exitosos" . ($errores > 0 ? ", {$errores} errores" : "")
+            ]);
+        } catch (Exception $e) {
+            error_log("Error notificando socios: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al enviar notificaciones'], 500);
+        }
+    }
+    
     // ============================================
     // NOTIFICACIONES (Plantillas de Email)
     // ============================================
