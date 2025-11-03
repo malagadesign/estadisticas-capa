@@ -52,6 +52,31 @@ class MailHelper {
     }
     
     /**
+     * Obtener plantilla desde BD
+     */
+    private static function getPlantilla($tipo) {
+        $db = Database::getInstance();
+        $plantilla = $db->fetchOne(
+            "SELECT asunto, cuerpo_html FROM emailsPlantillas 
+             WHERE tipo = ? AND habilitado = 1 AND elim = 0 AND superado = 0 
+             LIMIT 1",
+            ['s', $tipo]
+        );
+        return $plantilla ?: null;
+    }
+    
+    /**
+     * Reemplazar variables en plantilla
+     */
+    private static function procesarPlantilla($plantilla, $variables = []) {
+        $html = $plantilla['cuerpo_html'];
+        foreach ($variables as $key => $value) {
+            $html = str_replace('{' . $key . '}', $value, $html);
+        }
+        return $html;
+    }
+    
+    /**
      * Enviar email de bienvenida a nuevo usuario
      */
     public static function enviarBienvenida($usuario, $email, $hash) {
@@ -63,27 +88,23 @@ class MailHelper {
             return false;
         }
         
+        // Obtener plantilla desde BD
+        $plantilla = self::getPlantilla('bienvenida');
+        if (!$plantilla) {
+            error_log("MailHelper: No se encontró plantilla de bienvenida");
+            return false;
+        }
+        
         try {
             $mail = self::setupMailer();
             $mail->addAddress($email);
-            $mail->Subject = "CAPA - Link de acceso a sistema de carga Estadística de ventas anual";
+            $mail->Subject = $plantilla['asunto'];
             
+            // Reemplazar variables
             $url = APP_URL . "/v2/log/?h={$hash}";
-            $mail->Body = "
-                Estimado Socio
-                <br><br>
-                A continuación, encontrará link de acceso permanente al sistema de carga de la Estadística de ventas de CAPA.
-                <br><br>
-                Dicho link es exclusivo para su empresa para garantizar la confidencialidad de datos y no debe ser compartido con personal externo.
-                <br><br>
-                Sugerimos guardar el mismo en Favoritos/Marcadores de su navegador.
-                <br><br>
-                <a href='{$url}'>Link</a>: ({$url})
-                <br><br>
-                IMPORTANTE: Las cargas que realice en el sistema se actualizan de manera automática sin necesidad de un proceso de cierre.
-                <br><br>
-                Cualquier duda o consulta puede contactarnos al mail capa@capa.org.ar
-            ";
+            $mail->Body = self::procesarPlantilla($plantilla, [
+                'link_acceso' => $url
+            ]);
             
             $mail->send();
             error_log("MailHelper: Email de bienvenida enviado a {$email}");
