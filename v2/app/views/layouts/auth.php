@@ -37,6 +37,14 @@
         .auth-logo {
             max-width: 200px;
             margin-bottom: 2rem;
+            /* Cambiar color del logo SVG a azul oscuro CAPA (#001A4D) */
+            filter: brightness(0) saturate(100%) invert(8%) sepia(100%) saturate(4000%) hue-rotate(214deg) brightness(0.03) contrast(101%);
+        }
+        
+        /* Alternativa: Si el SVG tiene fill, podemos usar esto también */
+        .auth-logo svg,
+        .auth-logo svg * {
+            fill: #001A4D !important;
         }
     </style>
 </head>
