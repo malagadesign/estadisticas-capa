@@ -100,6 +100,7 @@ class EncuestasController {
         
         // Datos específicos según rol
         $articulosDeshabilitados = [];
+        $articulosHabilitados = [];
         $montosYaCargados = [];
         $articulosNoIncluidos = [];
         
@@ -124,6 +125,7 @@ class EncuestasController {
         } else {
             // Socio: cargar sus datos
             $articulosDeshabilitados = $encuestaModel->getArticulosDeshabilitadosPorSocio($userId);
+            $articulosHabilitados = $encuestaModel->getArticulosHabilitadosPorSocio($userId);
             $montosYaCargados = $encuestaModel->getMontosYaCargados($encuesta['did'], $userId);
             $consolidado = [];
             $sociosCargaron = 0;
