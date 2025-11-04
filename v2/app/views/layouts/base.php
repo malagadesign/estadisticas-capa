@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#001A4D">
     <title><?= $title ?? 'CAPA Encuestas' ?></title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="<?= asset('images/favicon.svg') ?>">
+    
     <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     

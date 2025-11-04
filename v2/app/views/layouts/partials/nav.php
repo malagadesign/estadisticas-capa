@@ -8,9 +8,9 @@ $currentPath = Request::url();
 <nav class="navbar navbar-expand-lg navbar-dark navbar-capa sticky-top">
     <div class="container-capa">
         <!-- Logo/Brand -->
-        <a class="navbar-brand" href="<?= route('/dashboard') ?>">
-            <i class="fas fa-chart-line me-2"></i>
-            CAPA Encuestas
+        <a class="navbar-brand d-flex align-items-center" href="<?= route('/dashboard') ?>">
+            <img src="<?= asset('images/logo-capa-1.svg') ?>" alt="CAPA" height="40" class="me-2">
+            <span class="d-none d-md-inline">CAPA Encuestas</span>
         </a>
         
         <!-- Toggler para mobile -->
