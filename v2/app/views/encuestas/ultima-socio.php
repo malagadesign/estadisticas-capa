@@ -561,7 +561,7 @@ async function crearArchivoExcel() {
         console.group('[Excel] crearArchivoExcel');
         console.log('ExcelJS presente?', typeof ExcelJS !== 'undefined');
         console.log('Artículos cargados:', todosLosArticulos.length);
-        console.log('Artículos deshabilitados keys:', Object.keys(articulosDeshabilitados).slice(0,10));
+        console.log('Artículos habilitados keys:', Object.keys(articulosHabilitados).slice(0,10));
         console.log('Mercados:', mercados);
         console.time('[Excel] generar');
     // Esperar a que se carguen todos los artículos
