@@ -1,0 +1,388 @@
+/**
+ * CAPA Encuestas v2.0 - Estilos Principales
+ * Paleta de colores oficial CAPA
+ */
+
+/* =====================================
+   VARIABLES CSS
+   ===================================== */
+:root {
+    /* Colores CAPA */
+    --capa-azul-oscuro: #001A4D;
+    --capa-purpura: #9D4EDD;
+    --capa-purpura-claro: #C084FC;
+    --capa-purpura-oscuro: #6B21A8;
+    
+    /* Grises */
+    --gris-muy-claro: #F8F9FA;
+    --gris-claro: #E9ECEF;
+    --gris-medio: #6C757D;
+    --gris-oscuro: #343A40;
+    
+    /* Semánticos */
+    --color-primario: var(--capa-azul-oscuro);
+    --color-secundario: var(--capa-purpura);
+    --color-acento: var(--capa-purpura-claro);
+    --color-hover: var(--capa-purpura-oscuro);
+    
+    /* Tipografía */
+    --font-principal: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-base: 1rem;
+    --line-height-base: 1.5;
+    
+    /* Espaciado */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Bordes */
+    --border-radius: 0.375rem;
+    --border-color: var(--gris-claro);
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* =====================================
+   BASE
+   ===================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-principal);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--gris-oscuro);
+    background-color: var(--gris-muy-claro);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* =====================================
+   HEADER Y NAVEGACIÓN
+   ===================================== */
+.navbar-capa {
+    background-color: var(--capa-azul-oscuro) !important;
+    box-shadow: var(--shadow-md);
+}
+
+.navbar-capa .navbar-brand {
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.navbar-capa .navbar-brand:hover {
+    color: var(--capa-purpura-claro) !important;
+}
+
+.navbar-capa .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.navbar-capa .nav-link:hover {
+    color: var(--capa-purpura-claro) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+}
+
+.navbar-capa .nav-link.active {
+    color: var(--capa-purpura-claro) !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: var(--border-radius);
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* =====================================
+   BOTONES
+   ===================================== */
+.btn {
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--capa-azul-oscuro);
+    border-color: var(--capa-azul-oscuro);
+}
+
+.btn-primary:hover {
+    background-color: #00122e;
+    border-color: #00122e;
+}
+
+.btn-secondary {
+    background-color: var(--capa-purpura);
+    border-color: var(--capa-purpura);
+}
+
+.btn-secondary:hover {
+    background-color: var(--capa-purpura-oscuro);
+    border-color: var(--capa-purpura-oscuro);
+}
+
+.btn-outline-primary {
+    color: var(--capa-azul-oscuro);
+    border-color: var(--capa-azul-oscuro);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--capa-azul-oscuro);
+    border-color: var(--capa-azul-oscuro);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: var(--capa-purpura);
+    border-color: var(--capa-purpura);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--capa-purpura);
+    border-color: var(--capa-purpura);
+    color: #fff;
+}
+
+/* =====================================
+   CARDS
+   ===================================== */
+.card {
+    border: none;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+
+.card-header {
+    background-color: var(--capa-azul-oscuro);
+    color: #fff;
+    font-weight: 600;
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* =====================================
+   TABLAS
+   ===================================== */
+.table {
+    background-color: #fff;
+}
+
+.table thead th {
+    background-color: var(--capa-azul-oscuro);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    padding: 0.875rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(157, 78, 221, 0.05);
+    cursor: pointer;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 26, 77, 0.02);
+}
+
+/* =====================================
+   FORMULARIOS
+   ===================================== */
+.form-label {
+    font-weight: 500;
+    color: var(--gris-oscuro);
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    padding: 0.625rem 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--capa-purpura);
+    box-shadow: 0 0 0 0.2rem rgba(157, 78, 221, 0.25);
+}
+
+/* =====================================
+   BADGES
+   ===================================== */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.badge-primary {
+    background-color: var(--capa-azul-oscuro);
+}
+
+.badge-secondary {
+    background-color: var(--capa-purpura);
+}
+
+/* =====================================
+   ALERTS (Flash Messages)
+   ===================================== */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+/* =====================================
+   FOOTER
+   ===================================== */
+.footer-capa {
+    background-color: var(--capa-azul-oscuro);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 1.5rem 0;
+    margin-top: auto;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.footer-capa a {
+    color: var(--capa-purpura-claro);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-capa a:hover {
+    color: #fff;
+}
+
+/* =====================================
+   UTILIDADES
+   ===================================== */
+.text-primary-capa {
+    color: var(--capa-azul-oscuro) !important;
+}
+
+.text-secondary-capa {
+    color: var(--capa-purpura) !important;
+}
+
+.bg-primary-capa {
+    background-color: var(--capa-azul-oscuro) !important;
+}
+
+.bg-secondary-capa {
+    background-color: var(--capa-purpura) !important;
+}
+
+/* =====================================
+   ANIMACIONES
+   ===================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+/* =====================================
+   LOADING SPINNER
+   ===================================== */
+.spinner-capa {
+    border: 3px solid rgba(157, 78, 221, 0.2);
+    border-top-color: var(--capa-purpura);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =====================================
+   CONTAINER PERSONALIZADO CON MÁRGENES
+   ===================================== */
+.container-capa {
+    width: 100%;
+    padding-right: 20px;
+    padding-left: 20px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+@media (min-width: 576px) {
+    .container-capa {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container-capa {
+        max-width: 720px;
+        padding-right: 30px;
+        padding-left: 30px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container-capa {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container-capa {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container-capa {
+        max-width: 1320px;
+    }
+}
+
