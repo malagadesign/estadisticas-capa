@@ -302,11 +302,11 @@ async function cfgToggle(didArticulo, checkbox) {
             const nombreArticulo = obtenerNombreArticulo(didArticulo);
             const estadoTexto = result.habilitado ? 'habilitado' : 'deshabilitado';
             showToast(`${nombreArticulo}: ${estadoTexto} correctamente`, 'success');
-            // Actualizar estado en articulosDeshabilitados
+            // Actualizar estado en articulosHabilitados
             if (result.habilitado == 1) {
-                delete articulosDeshabilitados[didArticulo];
+                articulosHabilitados[didArticulo] = true;
             } else {
-                articulosDeshabilitados[didArticulo] = true;
+                delete articulosHabilitados[didArticulo];
             }
         } else {
             checkbox.checked = !checkbox.checked;
@@ -346,8 +346,8 @@ const articulosPorPaginaCarga = 50;
 
 // Cargar artículos incorporados
 function cargarArticulosIncorporados() {
-    // Filtrar solo artículos incorporados (NO deshabilitados)
-    articulosIncorporados = todosLosArticulos.filter(a => !articulosDeshabilitados[a.did]);
+    // Filtrar solo artículos incorporados (habilitados)
+    articulosIncorporados = todosLosArticulos.filter(a => articulosHabilitados[a.did]);
     console.log(`Artículos incorporados: ${articulosIncorporados.length}`);
     renderizarTablaCarga(1);
 }
@@ -719,7 +719,7 @@ async function procesarArchivoExcel() {
     }
     
     const articulosIncorporados = todosLosArticulos.filter(a => {
-        return !articulosDeshabilitados[a.did];
+        return articulosHabilitados[a.did];
     });
     
     let modificaciones = 0;
