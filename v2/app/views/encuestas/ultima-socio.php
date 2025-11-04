@@ -35,8 +35,8 @@
             </div>
             <div class="card-body">
                 <p class="text-muted mb-4">
-                    Desmarque los artículos que <strong>NO</strong> releva en su establecimiento. 
-                    Los artículos desmarcados <strong>NO</strong> aparecerán en la carga de datos.
+                    Marque los artículos que <strong>SÍ</strong> releva en su establecimiento. 
+                    Solo los artículos marcados aparecerán en la carga de datos.
                 </p>
                 
                 <div class="table-responsive">
@@ -168,6 +168,7 @@
 <script>
 // Estado
 const articulosDeshabilitados = <?= json_encode($articulosDeshabilitados) ?>;
+const articulosHabilitados = <?= json_encode($articulosHabilitados ?? []) ?>;
 const familiasPorRubro = <?= json_encode($familiasPorRubro) ?>;
 const rubros = <?= json_encode($rubros) ?>;
 const montosYaCargados = <?= json_encode($montosYaCargados) ?>;
@@ -254,7 +255,7 @@ function renderizarTabla(pagina = 1) {
     let html = '';
     for (let i = desde; i < hasta; i++) {
         const a = todosLosArticulos[i];
-        const deshabilitado = articulosDeshabilitados[a.did];
+        const habilitado = articulosHabilitados[a.did];
         html += `
             <tr>
                 <td>${i + 1}</td>
@@ -263,7 +264,7 @@ function renderizarTabla(pagina = 1) {
                 <td class="text-center">
                     <div class="form-check form-switch d-inline-block">
                         <input class="form-check-input" type="checkbox" id="cfg-art-${a.did}" 
-                               ${deshabilitado ? '' : 'checked'} 
+                               ${habilitado ? 'checked' : ''} 
                                onchange="cfgToggle(${a.did}, this)">
                     </div>
                 </td>
@@ -594,9 +595,9 @@ async function crearArchivoExcel() {
         cell.alignment = { horizontal: 'center' };
     });
     
-    // Filtrar solo artículos incorporados
+    // Filtrar solo artículos incorporados (habilitados)
     const articulosIncorporados = todosLosArticulos.filter(a => {
-        return !articulosDeshabilitados[a.did];
+        return articulosHabilitados[a.did];
     });
     console.log('Artículos incorporados:', articulosIncorporados.length);
     

@@ -73,6 +73,27 @@ class Encuesta {
     }
     
     /**
+     * Obtener artículos habilitados por un socio
+     */
+    public function getArticulosHabilitadosPorSocio($usuarioDid) {
+        $result = $this->db->fetchAll(
+            "SELECT didArticulo FROM articulosUsuarios 
+             WHERE didUsuario = ? 
+             AND habilitado = 1 
+             AND superado = 0 
+             AND elim = 0",
+            ['i', $usuarioDid]
+        );
+        
+        $articulos = [];
+        foreach ($result as $row) {
+            $articulos[$row['didArticulo']] = true;
+        }
+        
+        return $articulos;
+    }
+    
+    /**
      * Obtener montos ya cargados para una encuesta y usuario
      */
     public function getMontosYaCargados($encuestaDid, $usuarioDid) {
