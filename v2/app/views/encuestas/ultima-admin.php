@@ -44,7 +44,6 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th rowspan="2">#</th>
-                                        <th rowspan="2">Rubro</th>
                                         <th rowspan="2">Familia</th>
                                         <th rowspan="2">Artículo</th>
                                         <?php foreach ($mercados as $mercado): ?>
@@ -202,7 +201,6 @@ function renderizarConsolidado() {
                 
                 html += '<tr>';
                 html += '<td>' + rowNum + '</td>';
-                html += '<td>' + rubrosConsolidado[rubroDid] + '</td>';
                 html += '<td>' + familia.nombre + '</td>';
                 html += '<td><strong>' + articulo.nombre + '</strong></td>';
                 
@@ -305,8 +303,8 @@ function crearArchivoExcelAdmin() {
     var worksheet = workbook.addWorksheet(encuestaNombre);
     
     // Crear encabezado
-    var headers = ['#', 'Rubro', 'Familia', 'Artículo'];
-    var headerWidths = [4, 20, 25, 45];
+    var headers = ['#', 'Familia', 'Artículo'];
+    var headerWidths = [4, 25, 45];
     
     mercadosConsolidado.forEach(mercado => {
         headers.push(mercado.nombre + ' - CANTIDAD');
@@ -336,7 +334,7 @@ function crearArchivoExcelAdmin() {
             
             articulosDeLaFamilia.forEach(articulo => {
                 rowNum++;
-                let row = [rowNum, rubrosConsolidado[rubroDid], familia.nombre, articulo.nombre];
+                let row = [rowNum, familia.nombre, articulo.nombre];
                 
                 mercadosConsolidado.forEach(mercado => {
                     const keyCant = articulo.did + '-' + mercado.did + '-1';

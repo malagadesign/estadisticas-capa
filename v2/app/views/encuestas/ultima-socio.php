@@ -44,7 +44,6 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Rubro</th>
                                 <th>Familia</th>
                                 <th>Artículo</th>
                                 <th class="text-center">Incorporar</th>
@@ -83,7 +82,6 @@
                     <table class="table table-bordered table-sm">
                         <thead class="table-light">
                             <tr>
-                                <th rowspan="2">Rubro</th>
                                 <th rowspan="2">Familia</th>
                                 <th rowspan="2">Artículo</th>
                                 <th colspan="2">1 - RETAIL</th>
@@ -191,7 +189,7 @@ function obtenerNombreArticulo(did) {
 // Cargar todos los artículos de todas las familias
 async function cargarTodosLosArticulos() {
     const tbody = document.getElementById('articulos-tbody');
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando artículos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando artículos...</td></tr>';
     
     try {
         todasLasFamiliaDids = [];
@@ -241,7 +239,7 @@ async function cargarTodosLosArticulos() {
         
     } catch (e) {
         console.error('Error cargando artículos:', e);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar artículos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar artículos</td></tr>';
     }
 }
 
@@ -260,7 +258,6 @@ function renderizarTabla(pagina = 1) {
         html += `
             <tr>
                 <td>${i + 1}</td>
-                <td>${a.rubroNombre}</td>
                 <td>${a.familiaNombre}</td>
                 <td>${a.nombre}</td>
                 <td class="text-center">
@@ -382,7 +379,6 @@ function renderizarTablaCarga(pagina = 1) {
         
         html += `
             <tr>
-                <td>${a.rubroNombre}</td>
                 <td>${a.familiaNombre}</td>
                 <td>${a.nombre}</td>
                 <td>
@@ -579,7 +575,6 @@ async function crearArchivoExcel() {
     // Crear encabezado completo
     const headers = [
         { header: '#', width: 6 },
-        { header: 'Rubro', width: 20 },
         { header: 'Familia', width: 25 },
         { header: 'Artículo', width: 45 }
     ];
@@ -611,7 +606,6 @@ async function crearArchivoExcel() {
         rowNum++;
         const row = [
             articulo.did, // importante para validación del modelo
-            rubros[articulo.rubroDid],
             articulo.familiaNombre,
             articulo.nombre
         ];
@@ -629,7 +623,7 @@ async function crearArchivoExcel() {
     
     // Alinear columnas numéricas
     for (let i = 2; i <= rowNum + 1; i++) {
-        for (let j = 5; j <= 5 + (Object.keys(mercados).length * 2); j++) {
+        for (let j = 4; j <= 4 + (Object.keys(mercados).length * 2); j++) {
             worksheet.getRow(i).getCell(j).alignment = { horizontal: 'right' };
         }
     }
@@ -762,7 +756,7 @@ async function procesarArchivoExcel() {
     
     articulosIncorporados.forEach(articulo => {
         rowNumber++; // Ahora rowNumber es 2, 3, 4... (primera fila de datos)
-        let colNumber = 4;
+        let colNumber = 3;
         
         Object.keys(mercados).forEach(did => {
             // Cantidad
