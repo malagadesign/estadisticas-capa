@@ -4,7 +4,7 @@
         <div class="text-center mb-4">
             <img src="<?= asset('images/logo-capa-1.svg') ?>" alt="CAPA" class="auth-logo mx-auto d-block mb-3">
             <h2 class="fw-bold" style="color: var(--capa-azul-oscuro);">
-                CAPA Encuestas
+                Encuestas
             </h2>
             <p class="text-muted">Sistema de Relevamiento de Precios</p>
         </div>

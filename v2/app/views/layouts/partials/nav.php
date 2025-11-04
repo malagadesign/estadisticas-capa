@@ -10,7 +10,7 @@ $currentPath = Request::url();
         <!-- Logo/Brand -->
         <a class="navbar-brand d-flex align-items-center" href="<?= route('/dashboard') ?>">
             <img src="<?= asset('images/logo-capa-1.svg') ?>" alt="CAPA" height="40" class="me-2">
-            <span class="d-none d-md-inline">CAPA Encuestas</span>
+            <span class="d-none d-md-inline">Encuestas</span>
         </a>
         
         <!-- Toggler para mobile -->
