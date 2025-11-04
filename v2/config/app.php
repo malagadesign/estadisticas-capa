@@ -52,7 +52,8 @@ define('DB_PORT', env('DB_PORT', '3306'));
 define('APP_NAME', 'CAPA Encuestas');
 define('APP_VERSION', '2.0');
 define('APP_URL', env('APP_URL', 'https://estadistica-capa.org.ar'));
-define('ASSETS_URL', APP_URL . '/v2/public/assets');
+// ASSETS_URL debe apuntar a la carpeta public/assets dentro de v2
+define('ASSETS_URL', '/v2/public/assets');
 
 // Configuración de Email
 define('MAIL_HOST', env('MAIL_HOST', 'vps-1306543-x.dattaweb.com'));
