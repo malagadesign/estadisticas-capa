@@ -122,7 +122,8 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     quillInstances[textareaId] = {
         instance: quillInstance,
         isCodeMode: isCodeMode,
-        originalHtml: originalHtml
+        originalHtml: originalHtml,
+        fullHtml: null // Para guardar HTML completo cuando hay tablas
     };
     
     // Ocultar Quill inicialmente, mostrar textarea
@@ -134,17 +135,89 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     function hasComplexHTML(html) {
         if (!html) return false;
         return html.includes('<table') || 
-               html.includes('style=') || 
-               html.includes('<div') ||
+               html.includes('<tr') ||
+               html.includes('<td') ||
                html.includes('cellpadding') ||
                html.includes('cellspacing');
     }
+    
+    // Función para extraer solo el contenido de la segunda fila (td) del HTML
+    function extractSecondRowContent(html) {
+        // Crear un elemento temporal para parsear
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const secondRow = temp.querySelector('table tr:nth-child(2) td');
+        if (secondRow) {
+            return secondRow.innerHTML;
+        }
+        return html;
+    }
+    
+    // Función para reemplazar solo el contenido de la segunda fila
+    function replaceSecondRowContent(fullHtml, newContent) {
+        // Buscar la segunda fila (tr) y su td
+        const regex = /(<tr[^>]*>[\s\S]*?<td[^>]*>)([\s\S]*?)(<\/td>[\s\S]*?<\/tr>)/;
+        const matches = fullHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+        
+        if (matches && matches.length >= 2) {
+            // Encontrar la segunda fila completa
+            const secondRowMatch = matches[1].match(/(<tr[^>]*>[\s\S]*?<td[^>]*>)([\s\S]*?)(<\/td>[\s\S]*?<\/tr>)/);
+            if (secondRowMatch) {
+                // Reemplazar solo el contenido del td
+                return fullHtml.replace(secondRowMatch[0], secondRowMatch[1] + newContent + secondRowMatch[3]);
+            }
+        }
+        
+        // Fallback: método simple
+        const temp = document.createElement('div');
+        temp.innerHTML = fullHtml;
+        const secondRow = temp.querySelector('table tr:nth-child(2) td');
+        if (secondRow) {
+            secondRow.innerHTML = newContent;
+            return temp.innerHTML;
+        }
+        return fullHtml;
+    }
+    
+    // Crear contenedor para Quill
+    const quillContainer = document.createElement('div');
+    quillContainer.id = `quill_${textareaId}`;
+    quillContainer.style.height = '400px';
+    
+    // Crear contenedor para vista previa cuando hay tablas
+    const previewContainer = document.createElement('div');
+    previewContainer.id = `preview_${textareaId}`;
+    previewContainer.style.display = 'none';
+    previewContainer.style.border = '1px solid #ddd';
+    previewContainer.style.borderRadius = '4px';
+    previewContainer.style.padding = '10px';
+    previewContainer.style.marginBottom = '10px';
+    previewContainer.style.backgroundColor = '#f9f9f9';
+    previewContainer.innerHTML = '<small class="text-muted"><i class="fas fa-info-circle me-1"></i>Vista previa del email completo</small><iframe id="preview_iframe_' + textareaId + '" style="width: 100%; height: 400px; border: 1px solid #ddd; margin-top: 10px;"></iframe>';
+    
+    // Insertar primero preview después del textarea, luego quill después del preview
+    textarea.insertAdjacentElement('afterend', previewContainer);
+    previewContainer.insertAdjacentElement('afterend', quillContainer);
     
     // Sincronizar contenido a textarea cuando se edita en Quill
     quillInstance.on('text-change', function() {
         if (!quillInstances[textareaId].isCodeMode) {
             // Solo sincronizar si estamos en modo visual
-            textarea.value = quillInstance.root.innerHTML;
+            const editedContent = quillInstance.root.innerHTML;
+            // Si tenemos HTML completo guardado, reemplazar solo la segunda fila
+            if (quillInstances[textareaId].fullHtml) {
+                const updatedHtml = replaceSecondRowContent(quillInstances[textareaId].fullHtml, editedContent);
+                textarea.value = updatedHtml;
+                // Actualizar vista previa
+                const previewIframe = document.getElementById(`preview_iframe_${textareaId}`);
+                if (previewIframe) {
+                    previewIframe.contentDocument.open();
+                    previewIframe.contentDocument.write(updatedHtml);
+                    previewIframe.contentDocument.close();
+                }
+            } else {
+                textarea.value = editedContent;
+            }
         }
     });
     
@@ -163,31 +236,46 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
                 // Cambiar a modo visual
                 const currentHtml = textarea.value;
                 
-                // Si el HTML es complejo, mostrar advertencia y no cambiar
+                // Si el HTML es complejo (tiene tablas), extraer solo el contenido de la segunda fila
                 if (hasComplexHTML(currentHtml)) {
-                    if (confirm('El HTML contiene elementos complejos (tablas, estilos inline, etc.) que pueden perderse en el modo visual. ¿Desea continuar de todos modos? Se recomienda mantener el modo código.')) {
-                        // Guardar HTML actual antes de cambiar
-                        quillInstances[textareaId].originalHtml = currentHtml;
-                        quillInstance.root.innerHTML = currentHtml;
-                        quillContainer.style.display = 'block';
-                        textarea.style.display = 'none';
-                        this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
-                        quillInstances[textareaId].isCodeMode = false;
+                    // Guardar HTML completo
+                    quillInstances[textareaId].fullHtml = currentHtml;
+                    quillInstances[textareaId].originalHtml = currentHtml;
+                    // Extraer solo el contenido de la segunda fila para editar
+                    const secondRowContent = extractSecondRowContent(currentHtml);
+                    quillInstance.root.innerHTML = secondRowContent;
+                    quillContainer.style.display = 'block';
+                    textarea.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                    // Mostrar vista previa en iframe
+                    const previewIframe = document.getElementById(`preview_iframe_${textareaId}`);
+                    if (previewIframe) {
+                        previewIframe.contentDocument.open();
+                        previewIframe.contentDocument.write(currentHtml);
+                        previewIframe.contentDocument.close();
                     }
+                    this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
+                    quillInstances[textareaId].isCodeMode = false;
                 } else {
                     // HTML simple, cambiar a modo visual sin problemas
                     quillInstances[textareaId].originalHtml = currentHtml;
+                    quillInstances[textareaId].fullHtml = null; // Limpiar referencia
                     quillInstance.root.innerHTML = currentHtml;
                     quillContainer.style.display = 'block';
                     textarea.style.display = 'none';
+                    previewContainer.style.display = 'none';
                     this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
                     quillInstances[textareaId].isCodeMode = false;
                 }
             } else {
                 // Cambiar a modo código
-                // Si el HTML original era complejo, restaurar el original (no el sanitizado de Quill)
-                if (hasComplexHTML(quillInstances[textareaId].originalHtml)) {
-                    textarea.value = quillInstances[textareaId].originalHtml;
+                // Si tenemos HTML completo guardado (tablas), reconstruir el HTML completo
+                if (quillInstances[textareaId].fullHtml) {
+                    const editedContent = quillInstance.root.innerHTML;
+                    textarea.value = replaceSecondRowContent(quillInstances[textareaId].fullHtml, editedContent);
+                    // Actualizar referencias
+                    quillInstances[textareaId].fullHtml = textarea.value;
+                    quillInstances[textareaId].originalHtml = textarea.value;
                 } else {
                     // HTML simple, usar el contenido actualizado de Quill
                     textarea.value = quillInstance.root.innerHTML;
@@ -196,6 +284,7 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
                 quillContainer.style.display = 'none';
                 textarea.style.display = 'block';
                 textarea.classList.add('font-monospace');
+                previewContainer.style.display = 'none';
                 this.innerHTML = '<i class="fas fa-eye me-1"></i>Modo Visual';
                 quillInstances[textareaId].isCodeMode = true;
             }
