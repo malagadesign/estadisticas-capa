@@ -36,11 +36,7 @@ class Router {
      * Formatear path
      */
     private function formatPath($path) {
-        // Si el path es la raíz, retornar solo /v2 sin trailing slash
-        if ($path === '/') {
-            return '/v2';
-        }
-        return '/v2' . rtrim($path, '/');
+        return rtrim($path, '/');
     }
     
     /**
@@ -65,9 +61,9 @@ class Router {
         $url = parse_url($url, PHP_URL_PATH);
         error_log("URL después de parse_url: $url");
         
-        // Remover /capa/encuestas/v2 del path si está presente
-        $url = str_replace('/capa/encuestas/v2', '', $url);
-        error_log("URL después de remover /capa/encuestas/v2: $url");
+        // Remover /capa/encuestas del path si está presente
+        $url = str_replace('/capa/encuestas', '', $url);
+        error_log("URL después de remover /capa/encuestas: $url");
         
         // Remover /index.php del path si está presente
         $url = str_replace('/index.php', '', $url);
@@ -87,22 +83,6 @@ class Router {
         if (empty($url) || $url === '/') {
             $url = '/';
             error_log("URL normalizada a raíz: $url");
-        }
-        
-        // Si la URL ya tiene /v2/, usarla tal cual
-        // Si no tiene /v2/, agregarlo
-        if (strpos($url, '/v2') === 0) {
-            error_log("URL ya tiene /v2, procesando...");
-            // Si es exactamente /v2 o /v2/, convertir a /v2 (raíz)
-            if ($url === '/v2' || $url === '/v2/') {
-                $url = '/v2';
-                error_log("URL /v2 o /v2/ normalizada a: $url");
-            }
-            // Ya tiene /v2/, usar tal cual
-        } else {
-            // No tiene /v2/, agregarlo
-            $url = '/v2' . (strpos($url, '/') === 0 ? '' : '/') . ltrim($url, '/');
-            error_log("URL sin /v2, agregado: $url");
         }
         
         error_log("Router dispatch - URL final procesada: $url, Method: $method");
