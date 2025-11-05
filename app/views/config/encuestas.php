@@ -26,7 +26,7 @@
                                     <th width="150">Desde</th>
                                     <th width="150">Hasta</th>
                                     <th width="120">Habilitado</th>
-                                    <th width="150">Acciones</th>
+                                    <th width="200">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -58,6 +58,11 @@
                                                 <button class="btn btn-sm btn-outline-danger" onclick="eliminarEncuesta(<?= $encuesta['did'] ?>, '<?= e($encuesta['nombre']) ?>')" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                <?php if (!empty($encuesta['vigente'])): ?>
+                                                    <button class="btn btn-sm btn-capa-purpura-outline" onclick="notificarSocios(<?= $encuesta['did'] ?>, '<?= e($encuesta['nombre']) ?>')" title="Notificar a Socios">
+                                                        <i class="fas fa-bell"></i>
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -394,6 +399,34 @@ async function eliminarEncuesta(did, nombre) {
     } catch (error) {
         alert('❌ Error de conexión. Intente nuevamente.');
         console.error('Error eliminando encuesta:', error);
+    }
+}
+
+async function notificarSocios(did, nombre) {
+    if (!confirm(`¿Desea enviar notificaciones a todos los socios sobre la encuesta "${nombre}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('<?= route('/config/encuestas/notificar') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ did: did })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+        } else {
+            showToast(result.message || 'Error al enviar notificaciones', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'danger');
     }
 }
 

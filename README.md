@@ -33,30 +33,29 @@
 
 ```
 v2/
-├── public/              # Carpeta pública (document root)
-│   ├── index.php       # Entry point
-│   ├── .htaccess       # Routing y seguridad
-│   └── assets/         # CSS, JS, imágenes
+├── index.php           # Entry point
+├── .htaccess          # Routing y seguridad
+├── .env               # Configuración
 │
-├── app/                # Aplicación
-│   ├── controllers/    # Controladores
-│   ├── models/         # Modelos (acceso a datos)
-│   ├── views/          # Vistas (HTML+PHP)
-│   ├── middleware/     # Middlewares
-│   └── helpers/        # Funciones auxiliares
+├── app/               # Aplicación
+│   ├── controllers/   # Controladores
+│   ├── models/        # Modelos (acceso a datos)
+│   ├── views/         # Vistas (HTML+PHP)
+│   ├── middleware/    # Middlewares
+│   └── helpers/       # Funciones auxiliares
 │
-├── core/               # Core del framework
+├── core/              # Core del framework
 │   ├── Router.php
 │   ├── Database.php
 │   ├── View.php
 │   ├── Request.php
 │   └── Session.php
 │
-├── config/             # Configuración
-│   ├── app.php         # Config general
-│   └── routes.php      # Definición de rutas
+├── config/            # Configuración
+│   ├── app.php        # Config general
+│   └── routes.php     # Definición de rutas
 │
-└── storage/            # Almacenamiento
+└── storage/           # Almacenamiento
     ├── logs/
     ├── uploads/
     └── cache/
@@ -70,12 +69,7 @@ v2/
 
 **URL:**
 ```
-http://localhost:8888/capa/encuestas/v2/
-```
-
-**O también:**
-```
-http://localhost:8888/capa/encuestas/v2/index.php
+https://estadistica-capa.org.ar/v2/
 ```
 
 ### 2. **Credenciales de prueba**
@@ -92,7 +86,7 @@ Las mismas credenciales del sistema viejo funcionan:
 
 ### 3. **Base de Datos**
 
-- ✅ Usa la misma BD: `mlgcapa_enc`
+- ✅ Usa la misma BD: `encuesta_capa`
 - ✅ No se modifica nada
 - ✅ Funciona en paralelo con el sistema viejo
 
@@ -101,6 +95,7 @@ Las mismas credenciales del sistema viejo funcionan:
 ## 🔐 SEGURIDAD
 
 ### Implementado:
+
 - ✅ Sesiones seguras con regeneración automática
 - ✅ CSRF protection en todos los formularios
 - ✅ Prepared statements en todas las queries
@@ -108,21 +103,18 @@ Las mismas credenciales del sistema viejo funcionan:
 - ✅ Headers de seguridad en .htaccess
 - ✅ Validación de permisos por rol
 
-### Por implementar:
-- ⏳ Login attempts limit
-- ⏳ Rate limiting
-- ⏳ Logs de auditoría
-
 ---
 
 ## 📱 RESPONSIVE DESIGN
 
 ### Breakpoints:
+
 - **Mobile:** < 576px
 - **Tablet:** 576px - 991px
 - **Desktop:** >= 992px
 
 ### Características Mobile:
+
 - ✅ Navegación hamburger
 - ✅ Tablas convertidas a cards
 - ✅ Botones táctiles (44px mínimo)
@@ -158,34 +150,10 @@ Las mismas credenciales del sistema viejo funcionan:
 
 ---
 
-## 🧪 PRUEBAS
-
-### 1. **Login**
-```
-1. Ir a: http://localhost:8888/capa/encuestas/v2/
-2. Ingresar credenciales
-3. Verificar redirección al dashboard
-```
-
-### 2. **Dashboard**
-```
-1. Verificar estadísticas (si es admin)
-2. Ver última encuesta activa
-3. Verificar accesos rápidos
-```
-
-### 3. **Responsive**
-```
-1. Abrir DevTools (F12)
-2. Cambiar a vista mobile (375px)
-3. Verificar que todo sea visible y usable
-```
-
----
-
 ## 🎯 ESTADO ACTUAL
 
-### ✅ COMPLETADO (Fase 1):
+### ✅ COMPLETADO:
+
 1. ✅ Estructura del proyecto
 2. ✅ Core del framework (Router, Database, View, Session, Request)
 3. ✅ Sistema de autenticación
@@ -193,14 +161,13 @@ Las mismas credenciales del sistema viejo funcionan:
 5. ✅ Diseño responsive mobile-first
 6. ✅ Paleta de colores CAPA
 7. ✅ Dashboard funcional
+8. ✅ Gestión de usuarios (migrado de v1)
+9. ✅ Configuración completa
 
-### ⏳ PENDIENTE (Próximas fases):
+### ⏳ PENDIENTE:
+
 - ⏳ Módulo de Encuestas (última, anteriores, carga de datos)
 - ⏳ Módulo de Configuración (CRUD rubros, familias, artículos, mercados, encuestas)
-- ⏳ Módulo de Usuarios (CRUD administrativos y socios)
-- ⏳ Middlewares de autorización
-- ⏳ Modelos para acceso a datos
-- ⏳ Validaciones de formularios
 - ⏳ Upload de Excel
 - ⏳ Exportación de datos
 
@@ -209,24 +176,18 @@ Las mismas credenciales del sistema viejo funcionan:
 ## 🔄 MIGRACIÓN
 
 ### Convivencia con sistema viejo:
+
 - ✅ Ambos sistemas funcionan en paralelo
 - ✅ Misma base de datos
 - ✅ Usuarios pueden usar ambos
 - ✅ Cuando v2.0 esté completo, se reemplaza v1.0
-
-### Plan de migración gradual:
-1. **Fase 1:** Login y Dashboard (✅ COMPLETADO)
-2. **Fase 2:** Módulo de Encuestas
-3. **Fase 3:** Módulo de Configuración
-4. **Fase 4:** Módulo de Usuarios
-5. **Fase 5:** Testing y ajustes finales
-6. **Fase 6:** Reemplazo completo de v1.0
 
 ---
 
 ## 📞 SOPORTE
 
 Para reportar problemas o sugerencias:
+
 - **Email:** hola@malaga-design.com
 - **Desarrollador:** AI Assistant powered by Claude
 
@@ -239,7 +200,6 @@ Desarrollado por: malagadesign
 
 ---
 
-**¡Sistema listo para probar!** 🎉
+**¡Sistema listo para usar!** 🎉
 
-Navega a `http://localhost:8888/capa/encuestas/v2/` para comenzar.
-
+Navega a `https://estadistica-capa.org.ar/v2/` para comenzar.

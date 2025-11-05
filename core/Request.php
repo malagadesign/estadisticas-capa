@@ -40,10 +40,39 @@ class Request {
     }
     
     /**
-     * Obtener parámetro POST
+     * Parsear JSON si es necesario (solo una vez)
+     */
+    private static function parseJsonIfNeeded() {
+        static $jsonParsed = false;
+        
+        if (!$jsonParsed && self::isPost()) {
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (strpos($contentType, 'application/json') !== false) {
+                $rawInput = file_get_contents('php://input');
+                error_log("Request - JSON raw recibido: " . substr($rawInput, 0, 200));
+                
+                $jsonData = json_decode($rawInput, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($jsonData)) {
+                    // Fusionar con $_POST (JSON tiene prioridad)
+                    $_POST = array_merge($_POST, $jsonData);
+                    error_log("Request - JSON parseado OK, POST ahora tiene: " . json_encode(array_keys($_POST)));
+                } else {
+                    error_log("Request - Error parseando JSON: " . json_last_error_msg());
+                }
+            }
+            $jsonParsed = true;
+        }
+    }
+    
+    /**
+     * Obtener parámetro POST (soporta JSON)
      */
     public static function post($key, $default = null) {
-        return $_POST[$key] ?? $default;
+        // Parsear JSON si es necesario
+        self::parseJsonIfNeeded();
+        
+        $value = $_POST[$key] ?? $default;
+        return $value;
     }
     
     /**
@@ -54,9 +83,12 @@ class Request {
     }
     
     /**
-     * Obtener todos los POST
+     * Obtener todos los POST (soporta JSON)
      */
     public static function postAll() {
+        // Parsear JSON si es necesario
+        self::parseJsonIfNeeded();
+        
         return $_POST;
     }
     

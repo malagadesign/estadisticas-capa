@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
 // Cargar .env del directorio raíz
-$rootEnv = __DIR__ . '/../.env';
+$rootEnv = __DIR__ . '/../../.env';
 if (file_exists($rootEnv)) {
     $lines = file($rootEnv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -52,10 +52,20 @@ define('DB_PORT', env('DB_PORT', '3306'));
 define('APP_NAME', 'CAPA Encuestas');
 define('APP_VERSION', '2.0');
 define('APP_URL', env('APP_URL', 'https://estadistica-capa.org.ar'));
+// ASSETS_URL apunta a la carpeta public/assets
 define('ASSETS_URL', APP_URL . '/public/assets');
 
+// Configuración de Email
+define('MAIL_HOST', env('MAIL_HOST', 'vps-1306543-x.dattaweb.com'));
+define('MAIL_PORT', env('MAIL_PORT', '465'));
+define('MAIL_USER', env('MAIL_USER', ''));
+define('MAIL_PASSWORD', env('MAIL_PASSWORD', ''));
+define('MAIL_FROM_NAME', env('MAIL_FROM_NAME', 'CAPA ESTADISTICA'));
+define('MAIL_REPLY_TO', env('MAIL_REPLY_TO', 'capa@capa.org.ar'));
+define('ADMIN_EMAIL', env('ADMIN_EMAIL', 'capa@capa.org.ar'));
+
 // Paths
-define('ROOT_PATH', __DIR__);
+define('ROOT_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', ROOT_PATH . '/public');
 define('STORAGE_PATH', ROOT_PATH . '/storage');
 
@@ -95,15 +105,8 @@ function csrf_field() {
 
 // Helper para formatear fechas
 function fecha_format($fecha, $formato = 'd/m/Y') {
-    if (empty($fecha) || $fecha === '0000-00-00' || $fecha === '0000-00-00 00:00:00') {
-        return 'Sin fecha';
-    }
-    
+    if (empty($fecha)) return '';
     $timestamp = strtotime($fecha);
-    if ($timestamp === false) {
-        return 'Fecha inválida';
-    }
-    
     return date($formato, $timestamp);
 }
 
@@ -124,10 +127,21 @@ function asset($path) {
 
 // Helper para rutas
 function route($path) {
-    // Con Apache y .htaccess, las URLs son limpias
+    // Agregar prefijo /v2/ a todas las rutas excepto si ya lo tiene
+    $basePath = '/v2';
+    
     if ($path === '/') {
-        return APP_URL . '/';
+        return APP_URL . $basePath . '/';
     }
-    return APP_URL . $path;
+    
+    // Si el path ya empieza con /v2, no duplicar
+    if (strpos($path, '/v2') === 0) {
+        return APP_URL . $path;
+    }
+    
+    // Asegurar que el path empiece con /
+    $path = '/' . ltrim($path, '/');
+    
+    return APP_URL . $basePath . $path;
 }
 

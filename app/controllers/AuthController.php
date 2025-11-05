@@ -13,9 +13,49 @@ class AuthController {
             View::redirect('/dashboard');
         }
         
+        // Verificar si viene con hash (login automático)
+        $hash = Request::get('h');
+        if (!empty($hash)) {
+            $this->loginPorHash($hash);
+            return;
+        }
+        
         View::render('auth/login', [
             'title' => 'Iniciar Sesión - CAPA Encuestas'
         ], 'auth');
+    }
+    
+    /**
+     * Login automático por hash
+     */
+    private function loginPorHash($hash) {
+        $db = Database::getInstance();
+        
+        $user = $db->fetchOne(
+            "SELECT * FROM usuarios 
+             WHERE hash = ? 
+             AND superado = 0 
+             AND elim = 0 
+             AND habilitado = 1 
+             LIMIT 1",
+            ['s', $hash]
+        );
+        
+        if ($user) {
+            // Login exitoso
+            Session::regenerate();
+            Session::set('user_logged', true);
+            Session::set('user_id', $user['did']);
+            Session::set('user_name', $user['usuario']);
+            Session::set('user_email', $user['mail']);
+            Session::set('user_type', $user['tipo']);
+            
+            error_log("Login por hash exitoso: {$user['usuario']} ({$user['tipo']})");
+            View::redirect('/dashboard', '¡Bienvenido ' . $user['usuario'] . '!', 'success');
+        } else {
+            error_log("Login por hash fallido: hash inválido");
+            View::redirect('/', 'Link de acceso inválido o expirado', 'danger');
+        }
     }
     
     /**
@@ -83,12 +123,6 @@ class AuthController {
         
         // Log de login exitoso
         error_log("Login successful: {$usuario} ({$user['tipo']})");
-        
-        // Verificar si debe cambiar contraseña (hash no vacío)
-        if (!empty($user['hash'])) {
-            Session::set('force_password_change', true);
-            View::redirect('/cuenta/cambiar-password', 'Debe cambiar su contraseña', 'warning');
-        }
         
         // Redirigir al dashboard
         View::redirect('/dashboard', '¡Bienvenido ' . $user['usuario'] . '!', 'success');

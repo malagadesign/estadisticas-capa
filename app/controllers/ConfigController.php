@@ -34,7 +34,8 @@ class ConfigController {
         
         View::render('config/mercados', [
             'title' => 'Mercados - CAPA',
-            'mercados' => $mercados
+            'mercados' => $mercados,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -147,7 +148,8 @@ class ConfigController {
         
         View::render('config/rubros', [
             'title' => 'Rubros - CAPA',
-            'rubros' => $rubros
+            'rubros' => $rubros,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -272,7 +274,8 @@ class ConfigController {
         View::render('config/familias', [
             'title' => 'Familias - CAPA',
             'familias' => $familias,
-            'rubros' => $rubros
+            'rubros' => $rubros,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -399,7 +402,8 @@ class ConfigController {
         View::render('config/articulos', [
             'title' => 'Artículos - CAPA',
             'articulos' => $articulos,
-            'familias' => $familias
+            'familias' => $familias,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -507,14 +511,20 @@ class ConfigController {
         
         $db = Database::getInstance();
         $encuestas = $db->fetchAll(
-            "SELECT * FROM encuestas 
+            "SELECT *, 
+             (CASE 
+                WHEN habilitado = 1 AND desde <= CURDATE() AND hasta >= CURDATE() THEN 1 
+                ELSE 0 
+              END) AS vigente
+             FROM encuestas 
              WHERE superado = 0 AND elim = 0 
              ORDER BY desdeText DESC"
         );
         
         View::render('config/encuestas', [
             'title' => 'Encuestas - CAPA',
-            'encuestas' => $encuestas
+            'encuestas' => $encuestas,
+            'css' => ['css/config-module.css']
         ]);
     }
     
@@ -652,6 +662,155 @@ class ConfigController {
         } catch (Exception $e) {
             error_log("Error eliminando encuesta: " . $e->getMessage());
             View::json(['success' => false, 'message' => 'Error al eliminar'], 500);
+        }
+    }
+    
+    /**
+     * Notificar a socios sobre nueva encuesta
+     */
+    public function encuestas_notificar() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        
+        if (empty($did)) {
+            View::json(['success' => false, 'message' => 'ID de encuesta requerido'], 400);
+        }
+        
+        require_once __DIR__ . '/../../core/MailHelper.php';
+        
+        try {
+            $db = Database::getInstance();
+            
+            // Obtener datos de la encuesta
+            $encuesta = $db->fetchOne(
+                "SELECT * FROM encuestas WHERE did = ? AND elim = 0",
+                ['i', $did]
+            );
+            
+            if (!$encuesta) {
+                View::json(['success' => false, 'message' => 'Encuesta no encontrada'], 404);
+            }
+            
+            // Obtener socios activos
+            $socios = $db->fetchAll(
+                "SELECT * FROM usuarios WHERE TRIM(tipo) = 'socio' AND habilitado = 1 AND elim = 0"
+            );
+            
+            if (empty($socios)) {
+                View::json(['success' => false, 'message' => 'No hay socios activos para notificar'], 400);
+            }
+            
+            // Obtener plantilla de email
+            $plantilla = $db->fetchOne(
+                "SELECT * FROM emailsPlantillas WHERE tipo = 'nueva_encuesta' AND habilitado = 1 AND elim = 0"
+            );
+            
+            if (!$plantilla) {
+                View::json(['success' => false, 'message' => 'Plantilla de email no encontrada'], 404);
+            }
+            
+            // Procesar variables dinámicas
+            $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'periodo' => $encuesta['desdeText'] . ' - ' . $encuesta['hastaText']
+            ]);
+            
+            $cuerpoHtml = MailHelper::procesarPlantillaPublic($plantilla['cuerpo_html'], [
+                'nombre_encuesta' => $encuesta['nombre'],
+                'periodo' => $encuesta['desdeText'] . ' - ' . $encuesta['hastaText'],
+                'link_sistema' => env('APP_URL', 'https://estadistica-capa.org.ar')
+            ]);
+            
+            // Enviar email a cada socio
+            $enviados = 0;
+            $errores = 0;
+            $emailPrueba = 'micaela@malaga-design.com.ar';
+            
+            foreach ($socios as $socio) {
+                // MODO PRUEBA: Solo enviar a email de prueba
+                // TODO: Quitar este filtro cuando se confirme que funciona correctamente
+                if ($socio['mail'] !== $emailPrueba) {
+                    continue;
+                }
+                
+                try {
+                    MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
+                    $enviados++;
+                    error_log("Email enviado exitosamente a: {$socio['mail']}");
+                } catch (Exception $e) {
+                    $errores++;
+                    error_log("Error enviando email a {$socio['mail']}: " . $e->getMessage());
+                }
+            }
+            
+            View::json([
+                'success' => true, 
+                'message' => "Notificaciones enviadas: {$enviados} exitosos" . ($errores > 0 ? ", {$errores} errores" : "")
+            ]);
+        } catch (Exception $e) {
+            error_log("Error notificando socios: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al enviar notificaciones'], 500);
+        }
+    }
+    
+    // ============================================
+    // NOTIFICACIONES (Plantillas de Email)
+    // ============================================
+    
+    /**
+     * Listar plantillas de email
+     */
+    public function notificaciones() {
+        if (!Session::isAdmin()) {
+            View::forbidden();
+        }
+        
+        $db = Database::getInstance();
+        $plantillas = $db->fetchAll(
+            "SELECT * FROM emailsPlantillas 
+             WHERE elim = 0 AND superado = 0 
+             ORDER BY did ASC"
+        );
+        
+        View::render('config/notificaciones', [
+            'title' => 'Plantillas de Notificaciones - CAPA',
+            'plantillas' => $plantillas,
+            'css' => ['css/config-module.css']
+        ]);
+    }
+    
+    /**
+     * Actualizar plantilla de email
+     */
+    public function notificaciones_update() {
+        if (!Session::isAdmin()) {
+            View::json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        
+        $did = Request::post('did');
+        $asunto = Request::post('asunto');
+        $cuerpoHtml = Request::post('cuerpo_html');
+        
+        if (empty($did) || empty($asunto) || empty($cuerpoHtml)) {
+            View::json(['success' => false, 'message' => 'Datos incompletos'], 400);
+        }
+        
+        try {
+            $db = Database::getInstance();
+            $db->query(
+                "UPDATE emailsPlantillas 
+                 SET asunto = ?, cuerpo_html = ? 
+                 WHERE did = ? AND elim = 0",
+                ['ssi', $asunto, $cuerpoHtml, $did]
+            );
+            
+            View::json(['success' => true, 'message' => 'Plantilla actualizada correctamente']);
+        } catch (Exception $e) {
+            error_log("Error actualizando plantilla: " . $e->getMessage());
+            View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
         }
     }
 }

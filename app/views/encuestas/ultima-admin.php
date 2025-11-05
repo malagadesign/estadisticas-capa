@@ -1,81 +1,420 @@
 <!-- Vista para Administradores -->
-<div class="row">
+
+<!-- Tabs Navigation -->
+<div class="row mb-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                Artículos No Incluidos por Socios
-            </div>
-            <div class="card-body">
-                <?php if (empty($articulosNoIncluidos)): ?>
-                    <div class="alert alert-success mb-0">
-                        <i class="fas fa-check-circle me-2"></i>
-                        ¡Excelente! Todos los socios han incluido todos los artículos
-                    </div>
-                <?php else: ?>
-                    <p class="text-muted">
-                        Los siguientes artículos fueron deshabilitados por algunos socios:
-                    </p>
-                    
-                    <!-- Desktop Table -->
-                    <div class="table-responsive d-none d-md-block">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Rubro</th>
-                                    <th>Familia</th>
-                                    <th>Artículo</th>
-                                    <th>Socio</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($articulosNoIncluidos as $item): ?>
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="consolidado-tab" data-bs-toggle="tab" data-bs-target="#consolidado" type="button" role="tab">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Consolidado de Datos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="seguimiento-tab" data-bs-toggle="tab" data-bs-target="#seguimiento" type="button" role="tab">
+                    <i class="fas fa-users me-2"></i>
+                    Seguimiento de Socios
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Tabs Content -->
+<div class="tab-content">
+    <!-- Tab 1: Consolidado -->
+    <div class="tab-pane fade show active" id="consolidado" role="tabpanel">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="text-muted mb-0">
+                                El número en superíndice indica cuántos socios completaron cada campo.
+                            </p>
+                            <button class="btn btn-success" onclick="crearArchivoExcelAdmin()">
+                                <i class="fas fa-download me-2"></i>
+                                Descargar Excel
+                            </button>
+                        </div>
+                        
+                        <!-- Desktop Table -->
+                        <div class="table-responsive d-none d-md-block">
+                            <table class="table table-striped table-hover table-bordered">
+                                <thead class="table-light">
                                     <tr>
-                                        <td><?= e($item['rubroNombre']) ?></td>
-                                        <td><?= e($item['familiaNombre']) ?></td>
-                                        <td><strong><?= e($item['articuloNombre']) ?></strong></td>
-                                        <td>
-                                            <span class="badge bg-warning">
-                                                <?= e($item['socioNombre']) ?>
-                                            </span>
+                                        <th rowspan="2">#</th>
+                                        <th rowspan="2">Familia</th>
+                                        <th rowspan="2">Artículo</th>
+                                        <?php foreach ($mercados as $mercado): ?>
+                                            <th colspan="2"><?= e($mercado['nombre']) ?></th>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                    <tr>
+                                        <?php foreach ($mercados as $mercado): ?>
+                                            <th>Cantidad</th>
+                                            <th>Valor</th>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                </thead>
+                                <tbody id="consolidado-tbody">
+                                    <tr>
+                                        <td colspan="<?= 4 + (count($mercados) * 2) ?>" class="text-center">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            Cargando consolidado...
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Mobile Cards -->
+                        <div class="d-md-none">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                La vista consolidada está disponible en dispositivos de escritorio
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- Mobile Cards -->
-                    <div class="d-md-none">
-                        <?php foreach ($articulosNoIncluidos as $item): ?>
-                            <div class="card mb-2">
-                                <div class="card-body">
-                                    <h6 class="card-title"><?= e($item['articuloNombre']) ?></h6>
-                                    <p class="card-text mb-1">
-                                        <small class="text-muted">
-                                            <?= e($item['rubroNombre']) ?> › <?= e($item['familiaNombre']) ?>
-                                        </small>
-                                    </p>
-                                    <span class="badge bg-warning">
-                                        <?= e($item['socioNombre']) ?>
-                                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab 2: Seguimiento -->
+    <div class="tab-pane fade" id="seguimiento" role="tabpanel">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0"><?= $sociosCargaron ?></h3>
+                                        <p class="mb-0"><i class="fas fa-check-circle me-1"></i>Completaron</p>
+                                    </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                            <div class="col-md-4">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0"><?= $sociosFaltan ?></h3>
+                                        <p class="mb-0"><i class="fas fa-clock me-1"></i>Faltan</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-0"><?= ($sociosCargaron + $sociosFaltan) ?></h3>
+                                        <p class="mb-0"><i class="fas fa-users me-1"></i>Total</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <?php if ($sociosFaltan > 0): ?>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <button class="btn btn-warning" onclick="enviarRecordatorios()" id="btnRecordatorios">
+                                    <i class="fas fa-bell me-2"></i>
+                                    Enviar Recordatorio a Socios Pendientes
+                                </button>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <!-- Desktop Table -->
+                        <div class="table-responsive d-none d-md-block">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Socio</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="seguimiento-tbody">
+                                    <tr>
+                                        <td colspan="3" class="text-center">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            Cargando seguimiento...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Mobile Cards -->
+                        <div class="d-md-none">
+                            <div id="seguimiento-mobile" class="row">
+                                <div class="col-12 text-center py-3">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    Cargando seguimiento...
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Nota:</strong> Como administrador, puedes ver qué artículos no están siendo relevados por cada socio. 
-            Para ver los datos cargados, puedes acceder al sistema anterior o esperar la implementación de reportes en esta versión.
-        </div>
-    </div>
-</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
 
+<script>
+// Datos para consolidado
+const consolidado = <?= json_encode($consolidado) ?>;
+const rubrosConsolidado = <?= json_encode($rubros) ?>;
+const familiasConsolidado = <?= json_encode($familias) ?>;
+const articulosConsolidado = <?= json_encode($articulos) ?>;
+const mercadosConsolidado = <?= json_encode($mercados) ?>;
+const familiasPorRubroConsolidado = <?= json_encode($familiasPorRubro) ?>;
+const articulosPorFamiliaConsolidado = <?= json_encode($articulosPorFamilia) ?>;
+const encuestaNombre = '<?= e($encuesta['nombre']) ?>';
+const encuestaDid = <?= $encuesta['did'] ?>;
+
+// Función para renderizar consolidado
+function renderizarConsolidado() {
+    const tbody = document.getElementById('consolidado-tbody');
+    
+    if (!mercadosConsolidado || mercadosConsolidado.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay mercados para mostrar</td></tr>';
+        return;
+    }
+    
+    let html = '';
+    let rowNum = 0;
+    
+    // Organizar artículos por rubro > familia > artículo
+    for (let rubroDid in familiasPorRubroConsolidado) {
+        const familiasDelRubro = familiasPorRubroConsolidado[rubroDid];
+        
+        familiasDelRubro.forEach(familia => {
+            const articulosDeLaFamilia = articulosPorFamiliaConsolidado[familia.did] || [];
+            
+            articulosDeLaFamilia.forEach(articulo => {
+                rowNum++;
+                
+                html += '<tr>';
+                html += '<td>' + rowNum + '</td>';
+                html += '<td>' + familia.nombre + '</td>';
+                html += '<td><strong>' + articulo.nombre + '</strong></td>';
+                
+                // Para cada mercado
+                mercadosConsolidado.forEach(mercado => {
+                    // Cantidad
+                    const keyCant = articulo.did + '-' + mercado.did + '-1';
+                    const datoCant = consolidado[keyCant];
+                    let cantHtml = '';
+                    if (datoCant && datoCant.monto > 0) {
+                        cantHtml = '<sup title="Socios que completaron">' + datoCant.socios + '</sup> ' + 
+                                   parseFloat(datoCant.monto).toLocaleString('es-AR');
+                    } else {
+                        cantHtml = '<span class="text-muted">0</span>';
+                    }
+                    html += '<td style="text-align: right;">' + cantHtml + '</td>';
+                    
+                    // Valor
+                    const keyVal = articulo.did + '-' + mercado.did + '-2';
+                    const datoVal = consolidado[keyVal];
+                    let valHtml = '';
+                    if (datoVal && datoVal.monto > 0) {
+                        valHtml = '<sup title="Socios que completaron">' + datoVal.socios + '</sup> ' + 
+                                  parseFloat(datoVal.monto).toLocaleString('es-AR');
+                    } else {
+                        valHtml = '<span class="text-muted">0</span>';
+                    }
+                    html += '<td style="text-align: right;">' + valHtml + '</td>';
+                });
+                
+                html += '</tr>';
+            });
+        });
+    }
+    
+    tbody.innerHTML = html;
+}
+
+// Función para renderizar seguimiento
+function renderizarSeguimiento() {
+    const tbody = document.getElementById('seguimiento-tbody');
+    const mobileDiv = document.getElementById('seguimiento-mobile');
+    
+    // Cargar datos via AJAX
+    fetch('<?= route('/encuestas/seguimiento') ?>')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">' + data.message + '</td></tr>';
+                if (mobileDiv) mobileDiv.innerHTML = '<div class="col-12 text-center text-danger">' + data.message + '</div>';
+                return;
+            }
+            
+            let html = '';
+            let mobileHtml = '';
+            let rowNum = 0;
+            
+            data.completaron.forEach(socio => {
+                rowNum++;
+                html += '<tr class="table-success">';
+                html += '<td>' + rowNum + '</td>';
+                html += '<td><strong>' + socio.usuario + '</strong></td>';
+                html += '<td><span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completó</span></td>';
+                html += '</tr>';
+                
+                mobileHtml += '<div class="col-12 mb-2"><div class="card border-success">';
+                mobileHtml += '<div class="card-body"><strong>' + socio.usuario + '</strong><span class="badge bg-success float-end">Completó</span></div></div></div>';
+            });
+            
+            data.faltan.forEach(socio => {
+                rowNum++;
+                html += '<tr class="table-warning">';
+                html += '<td>' + rowNum + '</td>';
+                html += '<td><strong>' + socio.usuario + '</strong></td>';
+                html += '<td><span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Falta</span></td>';
+                html += '</tr>';
+                
+                mobileHtml += '<div class="col-12 mb-2"><div class="card border-warning">';
+                mobileHtml += '<div class="card-body"><strong>' + socio.usuario + '</strong><span class="badge bg-warning float-end">Falta</span></div></div></div>';
+            });
+            
+            if (html === '') {
+                html = '<tr><td colspan="3" class="text-center">No hay datos para mostrar</td></tr>';
+                if (mobileDiv) mobileDiv.innerHTML = '<div class="col-12 text-center">No hay datos para mostrar</div>';
+            }
+            
+            tbody.innerHTML = html;
+            if (mobileDiv) mobileDiv.innerHTML = mobileHtml;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error al cargar datos</td></tr>';
+            if (mobileDiv) mobileDiv.innerHTML = '<div class="col-12 text-center text-danger">Error al cargar datos</div>';
+        });
+}
+
+// Función para crear Excel admin
+function crearArchivoExcelAdmin() {
+    var workbook = new ExcelJS.Workbook();
+    var worksheet = workbook.addWorksheet(encuestaNombre);
+    
+    // Crear encabezado
+    var headers = ['#', 'Familia', 'Artículo'];
+    var headerWidths = [4, 25, 45];
+    
+    mercadosConsolidado.forEach(mercado => {
+        headers.push(mercado.nombre + ' - CANTIDAD');
+        headers.push(mercado.nombre + ' - VALOR');
+        headerWidths.push(15);
+        headerWidths.push(15);
+    });
+    
+    worksheet.columns = headers.map((header, index) => ({
+        header: header,
+        width: headerWidths[index]
+    }));
+    
+    // Formatear encabezado
+    worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center' };
+    });
+    
+    // Añadir datos
+    let rowNum = 0;
+    for (let rubroDid in familiasPorRubroConsolidado) {
+        const familiasDelRubro = familiasPorRubroConsolidado[rubroDid];
+        
+        familiasDelRubro.forEach(familia => {
+            const articulosDeLaFamilia = articulosPorFamiliaConsolidado[familia.did] || [];
+            
+            articulosDeLaFamilia.forEach(articulo => {
+                rowNum++;
+                let row = [rowNum, familia.nombre, articulo.nombre];
+                
+                mercadosConsolidado.forEach(mercado => {
+                    const keyCant = articulo.did + '-' + mercado.did + '-1';
+                    const keyVal = articulo.did + '-' + mercado.did + '-2';
+                    const datoCant = consolidado[keyCant];
+                    const datoVal = consolidado[keyVal];
+                    
+                    row.push(datoCant && datoCant.monto > 0 ? datoCant.monto : 0);
+                    row.push(datoVal && datoVal.monto > 0 ? datoVal.monto : 0);
+                });
+                
+                worksheet.addRow(row);
+            });
+        });
+    }
+    
+    // Formatear celdas numéricas
+    for (let i = 2; i <= rowNum + 1; i++) {
+        let col = 5; // Empieza en columna E
+        for (let j = 0; j < mercadosConsolidado.length; j++) {
+            worksheet.getRow(i).getCell(col).alignment = { horizontal: 'right' };
+            worksheet.getRow(i).getCell(col + 1).alignment = { horizontal: 'right' };
+            col += 2;
+        }
+    }
+    
+    // Guardar
+    workbook.xlsx.writeBuffer().then(function(buffer) {
+        let blob = new Blob([buffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+        saveAs(blob, "Consolidado_" + encuestaNombre + ".xlsx");
+    });
+}
+
+// Función para enviar recordatorios
+async function enviarRecordatorios() {
+    if (!confirm(`¿Desea enviar recordatorios a los socios que aún no han completado la encuesta "${encuestaNombre}"?`)) {
+        return;
+    }
+    
+    const btn = document.getElementById('btnRecordatorios');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Enviando...';
+    
+    try {
+        const response = await fetch('<?= route('/encuestas/enviar-recordatorios') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ did: encuestaDid })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+        } else {
+            showToast(result.message || 'Error al enviar recordatorios', 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
+}
+
+// Cargar al inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    renderizarConsolidado();
+    
+    // Cargar seguimiento cuando se muestre el tab
+    const seguimientoTab = document.getElementById('seguimiento-tab');
+    seguimientoTab.addEventListener('shown.bs.tab', function() {
+        if (!document.getElementById('seguimiento-tbody').innerHTML.includes('Completó')) {
+            renderizarSeguimiento();
+        }
+    });
+});
+</script>

@@ -1,7 +1,7 @@
 <?php
 /**
  * CAPA Encuestas v2.0
- * Entry Point
+ * Entry Point - Sistema Moderno
  */
 
 // Suprimir warnings en pantalla (se logean en archivo)
@@ -59,4 +59,3 @@ try {
         View::notFound();
     }
 }
-

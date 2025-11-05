@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
-    <title><?= $title ?? 'Login - CAPA Encuestas' ?></title>
+    <title><?= $title ?? 'Login - Encuestas' ?></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="<?= asset('images/favicon.svg') ?>">
     
     <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -34,6 +37,14 @@
         .auth-logo {
             max-width: 200px;
             margin-bottom: 2rem;
+            /* Cambiar color del logo SVG a azul oscuro CAPA (#001A4D) */
+            filter: brightness(0) saturate(100%) invert(8%) sepia(100%) saturate(4000%) hue-rotate(214deg) brightness(0.03) contrast(101%);
+        }
+        
+        /* Alternativa: Si el SVG tiene fill, podemos usar esto también */
+        .auth-logo svg,
+        .auth-logo svg * {
+            fill: #001A4D !important;
         }
     </style>
 </head>

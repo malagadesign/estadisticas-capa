@@ -11,7 +11,7 @@ $currentYear = date('Y');
         <p class="mb-0">
             <small>
                 Powered by <a href="mailto:hola@malaga-design.com">malagadesign</a> | 
-                CAPA Encuestas v<?= APP_VERSION ?>
+                Encuestas v<?= APP_VERSION ?>
             </small>
         </p>
     </div>

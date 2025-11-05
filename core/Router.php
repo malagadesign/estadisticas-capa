@@ -36,7 +36,11 @@ class Router {
      * Formatear path
      */
     private function formatPath($path) {
-        return '/v2' . (rtrim($path, '/') ?: '/');
+        // Si el path es la raíz, retornar solo /v2 sin trailing slash
+        if ($path === '/') {
+            return '/v2';
+        }
+        return '/v2' . rtrim($path, '/');
     }
     
     /**
@@ -53,25 +57,62 @@ class Router {
      * Despachar request
      */
     public function dispatch($url, $method) {
+        $originalUrl = $url;
+        error_log("===== ROUTER DISPATCH START =====");
+        error_log("URL original: $originalUrl");
+        error_log("Method: $method");
+        
         $url = parse_url($url, PHP_URL_PATH);
+        error_log("URL después de parse_url: $url");
         
         // Remover /capa/encuestas/v2 del path si está presente
         $url = str_replace('/capa/encuestas/v2', '', $url);
+        error_log("URL después de remover /capa/encuestas/v2: $url");
         
         // Remover /index.php del path si está presente
         $url = str_replace('/index.php', '', $url);
+        error_log("URL después de remover /index.php: $url");
         
-        // Si la URL está vacía, ponerla como /
-        if (empty($url)) {
-            $url = '/';
+        // Normalizar: remover doble slash y normalizar
+        $url = preg_replace('#/+#', '/', $url);
+        error_log("URL después de normalizar doble slash: $url");
+        
+        // Normalizar: remover trailing slash excepto para la raíz
+        if ($url !== '/' && substr($url, -1) === '/') {
+            $url = rtrim($url, '/');
+            error_log("URL después de remover trailing slash: $url");
         }
         
-        // DEBUGGING: Agregar /v2 al path para que matchee
-        $url = '/v2' . $url;
+        // Si la URL está vacía, ponerla como /
+        if (empty($url) || $url === '/') {
+            $url = '/';
+            error_log("URL normalizada a raíz: $url");
+        }
         
-        foreach ($this->routes as $route) {
+        // Si la URL ya tiene /v2/, usarla tal cual
+        // Si no tiene /v2/, agregarlo
+        if (strpos($url, '/v2') === 0) {
+            error_log("URL ya tiene /v2, procesando...");
+            // Si es exactamente /v2 o /v2/, convertir a /v2 (raíz)
+            if ($url === '/v2' || $url === '/v2/') {
+                $url = '/v2';
+                error_log("URL /v2 o /v2/ normalizada a: $url");
+            }
+            // Ya tiene /v2/, usar tal cual
+        } else {
+            // No tiene /v2/, agregarlo
+            $url = '/v2' . (strpos($url, '/') === 0 ? '' : '/') . ltrim($url, '/');
+            error_log("URL sin /v2, agregado: $url");
+        }
+        
+        error_log("Router dispatch - URL final procesada: $url, Method: $method");
+        error_log("Total rutas registradas: " . count($this->routes));
+        
+        foreach ($this->routes as $index => $route) {
+            error_log("Probando ruta #$index: pattern={$route['pattern']}, path={$route['path']}, handler={$route['handler']}, method={$route['method']}");
             if ($route['method'] === $method) {
                 if (preg_match($route['pattern'], $url, $matches)) {
+                    error_log("✅ Router - Matched route: {$route['path']} -> {$route['handler']}");
                     // Extraer parámetros
                     foreach ($matches as $key => $value) {
                         if (is_string($key)) {
@@ -79,10 +120,18 @@ class Router {
                         }
                     }
                     
+                    error_log("===== ROUTER DISPATCH END (MATCHED) =====");
                     return $this->execute($route['handler']);
+                } else {
+                    error_log("❌ No match: pattern '{$route['pattern']}' no coincide con '$url'");
                 }
+            } else {
+                error_log("❌ Method mismatch: esperado {$route['method']}, recibido $method");
             }
         }
+        
+        error_log("❌ Router - No route matched for: $url ($method)");
+        error_log("===== ROUTER DISPATCH END (NO MATCH) =====");
         
         // 404
         http_response_code(404);
