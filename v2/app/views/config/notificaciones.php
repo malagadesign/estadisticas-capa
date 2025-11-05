@@ -39,7 +39,7 @@
                             <label for="cuerpo_<?= $plantilla['did'] ?>" class="form-label mb-0">Cuerpo del Email (HTML)</label>
                             <button type="button" class="btn btn-sm btn-outline-secondary toggle-editor" 
                                     data-target="cuerpo_<?= $plantilla['did'] ?>">
-                                <i class="fas fa-code me-1"></i>Modo Código
+                                <i class="fas fa-eye me-1"></i>Modo Visual
                             </button>
                         </div>
                         <p class="text-muted small">
@@ -87,11 +87,15 @@
 </style>
 
 <script>
+// Almacenar instancias de Quill globalmente
+const quillInstances = {};
+
 // Inicializar Quill para cada textarea
 document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     const textareaId = textarea.id;
     let quillInstance = null;
-    let isCodeMode = false;
+    let isCodeMode = true; // Iniciar en modo código para preservar HTML
+    let originalHtml = textarea.value; // Guardar HTML original
     
     // Crear contenedor para Quill
     const quillContainer = document.createElement('div');
@@ -99,10 +103,7 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     quillContainer.style.height = '400px';
     textarea.insertAdjacentElement('afterend', quillContainer);
     
-    // Ocultar textarea original
-    textarea.style.display = 'none';
-    
-    // Inicializar Quill
+    // Inicializar Quill (pero mantenerlo oculto inicialmente)
     quillInstance = new Quill(`#quill_${textareaId}`, {
         theme: 'snow',
         modules: {
@@ -117,15 +118,40 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
         }
     });
     
-    // Cargar contenido inicial
-    if (textarea.value) {
-        quillInstance.root.innerHTML = textarea.value;
+    // Guardar referencia global
+    quillInstances[textareaId] = {
+        instance: quillInstance,
+        isCodeMode: isCodeMode,
+        originalHtml: originalHtml
+    };
+    
+    // Ocultar Quill inicialmente, mostrar textarea
+    quillContainer.style.display = 'none';
+    textarea.style.display = 'block';
+    textarea.classList.add('font-monospace');
+    
+    // Función para detectar si el HTML es complejo (tiene tablas, estilos inline, etc.)
+    function hasComplexHTML(html) {
+        if (!html) return false;
+        return html.includes('<table') || 
+               html.includes('style=') || 
+               html.includes('<div') ||
+               html.includes('cellpadding') ||
+               html.includes('cellspacing');
     }
     
-    // Sincronizar contenido a textarea oculta
+    // Sincronizar contenido a textarea cuando se edita en Quill
     quillInstance.on('text-change', function() {
-        if (!isCodeMode) {
+        if (!quillInstances[textareaId].isCodeMode) {
+            // Solo sincronizar si estamos en modo visual
             textarea.value = quillInstance.root.innerHTML;
+        }
+    });
+    
+    // Sincronizar cuando se edita directamente en el textarea
+    textarea.addEventListener('input', function() {
+        if (quillInstances[textareaId].isCodeMode) {
+            quillInstances[textareaId].originalHtml = textarea.value; // Actualizar HTML original
         }
     });
     
@@ -133,21 +159,45 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     const toggleBtn = document.querySelector(`[data-target="${textareaId}"].toggle-editor`);
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function() {
-            if (isCodeMode) {
+            if (quillInstances[textareaId].isCodeMode) {
                 // Cambiar a modo visual
-                quillInstance.root.innerHTML = textarea.value;
-                quillContainer.style.display = 'block';
-                textarea.style.display = 'none';
-                this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
-                isCodeMode = false;
+                const currentHtml = textarea.value;
+                
+                // Si el HTML es complejo, mostrar advertencia y no cambiar
+                if (hasComplexHTML(currentHtml)) {
+                    if (confirm('El HTML contiene elementos complejos (tablas, estilos inline, etc.) que pueden perderse en el modo visual. ¿Desea continuar de todos modos? Se recomienda mantener el modo código.')) {
+                        // Guardar HTML actual antes de cambiar
+                        quillInstances[textareaId].originalHtml = currentHtml;
+                        quillInstance.root.innerHTML = currentHtml;
+                        quillContainer.style.display = 'block';
+                        textarea.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
+                        quillInstances[textareaId].isCodeMode = false;
+                    }
+                } else {
+                    // HTML simple, cambiar a modo visual sin problemas
+                    quillInstances[textareaId].originalHtml = currentHtml;
+                    quillInstance.root.innerHTML = currentHtml;
+                    quillContainer.style.display = 'block';
+                    textarea.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-code me-1"></i>Modo Código';
+                    quillInstances[textareaId].isCodeMode = false;
+                }
             } else {
                 // Cambiar a modo código
-                quillInstance.root.innerHTML = textarea.value;
+                // Si el HTML original era complejo, restaurar el original (no el sanitizado de Quill)
+                if (hasComplexHTML(quillInstances[textareaId].originalHtml)) {
+                    textarea.value = quillInstances[textareaId].originalHtml;
+                } else {
+                    // HTML simple, usar el contenido actualizado de Quill
+                    textarea.value = quillInstance.root.innerHTML;
+                    quillInstances[textareaId].originalHtml = textarea.value; // Actualizar referencia
+                }
                 quillContainer.style.display = 'none';
                 textarea.style.display = 'block';
                 textarea.classList.add('font-monospace');
                 this.innerHTML = '<i class="fas fa-eye me-1"></i>Modo Visual';
-                isCodeMode = true;
+                quillInstances[textareaId].isCodeMode = true;
             }
         });
     }
@@ -159,9 +209,23 @@ document.querySelectorAll('.plantilla-form').forEach(form => {
         e.preventDefault();
         
         const did = this.dataset.did;
+        const textarea = this.querySelector('textarea[name="cuerpo_html"]');
+        const textareaId = textarea.id;
+        
+        // Asegurar que el textarea tenga el contenido actualizado
+        // Buscar el Quill asociado a este textarea
+        const quillContainer = document.getElementById(`quill_${textareaId}`);
+        if (quillContainer && quillContainer.style.display !== 'none') {
+            // Si estamos en modo visual, sincronizar Quill -> textarea
+            if (quillInstances[textareaId] && !quillInstances[textareaId].isCodeMode) {
+                const quillInstance = quillInstances[textareaId].instance;
+                textarea.value = quillInstance.root.innerHTML;
+            }
+        }
+        
         const formData = new FormData(this);
         
-        // Obtener contenido HTML del textarea (ya sincronizado por Quill)
+        // Obtener contenido HTML del textarea
         const cuerpoHtml = formData.get('cuerpo_html');
         
         const data = {
