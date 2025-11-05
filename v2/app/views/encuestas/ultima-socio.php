@@ -138,7 +138,8 @@
                     <div class="col-12">
                         <p class="text-muted">
                             <i class="fas fa-info-circle me-2"></i>
-                            Complete solo con números (sin formato, sin separadores de miles, sin decimales para cantidades).
+                            Complete solo con números enteros (sin formato, sin separadores de miles, sin decimales para cantidades ni valores).
+                            Si copia y pega valores con formato (ej: 1.025,2 o 100.000,00), se eliminarán automáticamente los puntos y decimales.
                             Luego súbalo sin cambiar su estructura:
                         </p>
                     </div>
@@ -383,40 +384,52 @@ function renderizarTablaCarga(pagina = 1) {
                 <td>${a.familiaNombre}</td>
                 <td>${a.nombre}</td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 1, 'cantidad', this)"
-                           placeholder="0" step="1" value="${cant1}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${cant1}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="1" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 1, 'valor', this)"
-                           placeholder="0.00" step="0.01" value="${val1}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${val1}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 2, 'cantidad', this)"
-                           placeholder="0" step="1" value="${cant2}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${cant2}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="2" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 2, 'valor', this)"
-                           placeholder="0.00" step="0.01" value="${val2}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${val2}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="cantidad"
                            onblur="guardarDato(${a.did}, 3, 'cantidad', this)"
-                           placeholder="0" step="1" value="${cant3}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${cant3}">
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm input-carga-datos" 
+                    <input type="text" class="form-control form-control-sm input-carga-datos" 
                            data-articulo="${a.did}" data-canal="3" data-tipo="valor"
                            onblur="guardarDato(${a.did}, 3, 'valor', this)"
-                           placeholder="0.00" step="0.01" value="${val3}">
+                           onpaste="event.preventDefault(); manejarPegado(this, event)"
+                           oninput="limpiarInputEnTiempoReal(this)"
+                           placeholder="0" value="${val3}">
                 </td>
             </tr>
         `;
@@ -452,29 +465,78 @@ function renderizarTablaCarga(pagina = 1) {
     }
     document.getElementById('carga-paginador').innerHTML = pHtml;
 }
+// Manejar pegado de valores
+function manejarPegado(input, event) {
+    // Obtener el texto pegado
+    const textoPegado = (event.clipboardData || window.clipboardData).getData('text');
+    
+    // Limpiar el valor pegado
+    const valorLimpio = limpiarValorPegado(textoPegado);
+    
+    // Establecer el valor limpio en el input
+    input.value = valorLimpio;
+    
+    // Disparar evento input para aplicar validación adicional
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// Limpiar input en tiempo real mientras se escribe
+function limpiarInputEnTiempoReal(input) {
+    const valorActual = input.value;
+    const valorLimpio = limpiarValorPegado(valorActual);
+    
+    // Si el valor cambió después de limpiar, actualizarlo
+    if (valorActual !== valorLimpio) {
+        const posicionCursor = input.selectionStart;
+        input.value = valorLimpio;
+        // Mantener la posición del cursor
+        const nuevaPosicion = Math.max(0, posicionCursor - (valorActual.length - valorLimpio.length));
+        input.setSelectionRange(nuevaPosicion, nuevaPosicion);
+    }
+}
+
+// Limpiar valor pegado (eliminar puntos y decimales)
+function limpiarValorPegado(valorTexto) {
+    if (!valorTexto) return '';
+    
+    // Convertir a string y eliminar espacios
+    let valor = String(valorTexto).trim();
+    
+    // Si tiene coma, eliminar todo lo que viene después de la coma (decimales)
+    if (valor.includes(',')) {
+        valor = valor.split(',')[0];
+    }
+    
+    // Eliminar todos los puntos (separadores de miles)
+    valor = valor.replace(/\./g, '');
+    
+    // Eliminar cualquier otro carácter que no sea número
+    valor = valor.replace(/[^\d]/g, '');
+    
+    return valor;
+}
+
 // Validar y normalizar valor
 function validarYNormalizar(valorTexto, tipo) {
-    // Eliminar espacios y caracteres no numéricos excepto punto decimal
-    let valorLimpio = String(valorTexto).trim().replace(/[^\d.]/g, '');
+    // Primero limpiar el valor pegado (eliminar puntos y decimales)
+    let valorLimpio = limpiarValorPegado(valorTexto);
     
     // Para cantidades: solo enteros (sin decimales)
     if (tipo === 'cantidad') {
-        // Remover cualquier punto decimal
-        valorLimpio = valorLimpio.replace(/\./g, '');
         const valorNum = parseInt(valorLimpio) || 0;
         if (valorNum < 0) return { valido: false, valor: 0, error: 'No puede ser negativo' };
         return { valido: true, valor: valorNum, error: null };
     }
     
-    // Para valores: acepta decimales
-    const valorNum = parseFloat(valorLimpio) || 0;
+    // Para valores: también sin decimales según requerimiento
+    const valorNum = parseInt(valorLimpio) || 0;
     if (valorNum < 0) return { valido: false, valor: 0, error: 'No puede ser negativo' };
     return { valido: true, valor: valorNum, error: null };
 }
 
 // Navegar a la siguiente celda
 function navegarSiguienteCelda(input, direccion = 'next') {
-    const todasLasCeldas = Array.from(document.querySelectorAll('#tabla-carga-datos input[type="number"]'));
+    const todasLasCeldas = Array.from(document.querySelectorAll('#tabla-carga-datos input.input-carga-datos'));
     const indiceActual = todasLasCeldas.indexOf(input);
     
     if (direccion === 'next' && indiceActual < todasLasCeldas.length - 1) {
@@ -502,13 +564,8 @@ async function guardarDato(articuloDid, canalDid, tipo, input) {
         return;
     }
     
-    // Normalizar el valor en el input
-    if (tipo === 'cantidad') {
-        input.value = validacion.valor;
-    } else {
-        // Para valores, mantener hasta 2 decimales
-        input.value = validacion.valor.toFixed(2);
-    }
+    // Normalizar el valor en el input (sin decimales para ambos tipos)
+    input.value = validacion.valor;
     
     const valor = validacion.valor;
     console.log(`Guardando: artículo=${articuloDid}, canal=${canalDid}, tipo=${tipo}, valor=${valor}`);
@@ -773,10 +830,11 @@ async function procesarArchivoExcel() {
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Cantidad ${did} vacía, ignorando`);
                 } else {
-                    // Limpiar valor (solo números)
-                    let datoLimpio = parseFloat(dato.replace(/[^0-9]/g, ''));
+                    // Limpiar valor usando la función de limpieza (eliminar puntos y decimales)
+                    let datoLimpioTexto = limpiarValorPegado(dato);
+                    let datoLimpio = parseInt(datoLimpioTexto) || 0;
                     
-                    if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                    if (datoLimpio >= 0) {
                         const indiceMonto = `${articulo.did}-${did}-1`;
                         const valorActual = montosYaCargados[indiceMonto] || 0;
                         
@@ -803,9 +861,11 @@ async function procesarArchivoExcel() {
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Valor ${did} vacía, ignorando`);
                 } else {
-                    let datoLimpio = parseFloat(dato.replace(/[^0-9]/g, ''));
+                    // Limpiar valor usando la función de limpieza (eliminar puntos y decimales)
+                    let datoLimpioTexto = limpiarValorPegado(dato);
+                    let datoLimpio = parseInt(datoLimpioTexto) || 0;
                     
-                    if (!isNaN(datoLimpio) && datoLimpio >= 0) {
+                    if (datoLimpio >= 0) {
                         const indiceMonto = `${articulo.did}-${did}-2`;
                         const valorActual = montosYaCargados[indiceMonto] || 0;
                         
