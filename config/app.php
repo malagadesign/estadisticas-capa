@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
 // Cargar .env del directorio raíz
-$rootEnv = __DIR__ . '/../../.env';
+$rootEnv = __DIR__ . '/../.env';
 if (file_exists($rootEnv)) {
     $lines = file($rootEnv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -127,21 +127,14 @@ function asset($path) {
 
 // Helper para rutas
 function route($path) {
-    // Agregar prefijo /v2/ a todas las rutas excepto si ya lo tiene
-    $basePath = '/v2';
-    
+    // Con Apache y .htaccess, las URLs son limpias
     if ($path === '/') {
-        return APP_URL . $basePath . '/';
-    }
-    
-    // Si el path ya empieza con /v2, no duplicar
-    if (strpos($path, '/v2') === 0) {
-        return APP_URL . $path;
+        return APP_URL . '/';
     }
     
     // Asegurar que el path empiece con /
     $path = '/' . ltrim($path, '/');
     
-    return APP_URL . $basePath . $path;
+    return APP_URL . $path;
 }
 

@@ -144,7 +144,7 @@ class MailHelper {
             $mail->Subject = $plantilla['asunto'];
             
             // Reemplazar variables
-            $url = APP_URL . "/v2/log?h={$hash}";
+            $url = APP_URL . "/log?h={$hash}";
             $mail->Body = self::procesarPlantilla($plantilla, [
                 'link_acceso' => $url
             ]);
