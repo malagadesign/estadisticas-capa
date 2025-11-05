@@ -36,6 +36,10 @@ class Router {
      * Formatear path
      */
     private function formatPath($path) {
+        // Si es la raíz, mantenerla como /
+        if ($path === '/') {
+            return '/';
+        }
         return rtrim($path, '/');
     }
     
@@ -45,8 +49,15 @@ class Router {
     private function pathToPattern($path) {
         // Convertir :param a regex
         $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/]+)', $path);
-        $pattern = '#^' . $this->formatPath($pattern) . '$#';
-        return $pattern;
+        
+        // Si el path es la raíz, asegurar que el patrón sea exactamente /
+        if ($path === '/') {
+            return '#^/$#';
+        }
+        
+        // Para otros paths, usar formatPath
+        $formatted = $this->formatPath($pattern);
+        return '#^' . $formatted . '$#';
     }
     
     /**
