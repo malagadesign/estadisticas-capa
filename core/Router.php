@@ -65,36 +65,36 @@ class Router {
      */
     public function dispatch($url, $method) {
         // Parsear URL para obtener solo el path
-        $url = parse_url($url, PHP_URL_PATH);
+        $urlPath = parse_url($url, PHP_URL_PATH);
         
-        // Si no hay URL o está vacía, usar raíz
-        if (empty($url)) {
-            $url = '/';
+        // Si parse_url devuelve null o está vacío, usar raíz
+        if ($urlPath === null || $urlPath === '' || $urlPath === false) {
+            $urlPath = '/';
         }
         
         // Remover /capa/encuestas del path si está presente (solo para desarrollo local)
-        $url = str_replace('/capa/encuestas', '', $url);
+        $urlPath = str_replace('/capa/encuestas', '', $urlPath);
         
         // Remover /index.php del path si está presente
-        $url = str_replace('/index.php', '', $url);
+        $urlPath = str_replace('/index.php', '', $urlPath);
         
         // Normalizar: remover doble slash
-        $url = preg_replace('#/+#', '/', $url);
+        $urlPath = preg_replace('#/+#', '/', $urlPath);
         
         // Normalizar: remover trailing slash excepto para la raíz
-        if ($url !== '/' && substr($url, -1) === '/') {
-            $url = rtrim($url, '/');
+        if ($urlPath !== '/' && strlen($urlPath) > 1 && substr($urlPath, -1) === '/') {
+            $urlPath = rtrim($urlPath, '/');
         }
         
         // Asegurar que la raíz sea exactamente /
-        if (empty($url) || $url === '') {
-            $url = '/';
+        if (empty($urlPath) || $urlPath === '' || $urlPath === false) {
+            $urlPath = '/';
         }
         
         // Buscar ruta que coincida
         foreach ($this->routes as $route) {
             if ($route['method'] === $method) {
-                if (preg_match($route['pattern'], $url, $matches)) {
+                if (preg_match($route['pattern'], $urlPath, $matches)) {
                     // Extraer parámetros
                     foreach ($matches as $key => $value) {
                         if (is_string($key)) {
