@@ -90,18 +90,79 @@
 // Almacenar instancias de Quill globalmente
 const quillInstances = {};
 
-// Inicializar Quill para cada textarea
-document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
+// Funciones auxiliares globales
+function hasComplexHTML(html) {
+    if (!html) return false;
+    return html.includes('<table') || 
+           html.includes('<tr') ||
+           html.includes('<td') ||
+           html.includes('cellpadding') ||
+           html.includes('cellspacing');
+}
+
+function extractSecondRowContent(html) {
+    // Crear un elemento temporal para parsear
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    const secondRow = temp.querySelector('table tr:nth-child(2) td');
+    if (secondRow) {
+        return secondRow.innerHTML;
+    }
+    return html;
+}
+
+function replaceSecondRowContent(fullHtml, newContent) {
+    // Buscar la segunda fila (tr) y su td
+    const matches = fullHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+    
+    if (matches && matches.length >= 2) {
+        // Encontrar la segunda fila completa
+        const secondRowMatch = matches[1].match(/(<tr[^>]*>[\s\S]*?<td[^>]*>)([\s\S]*?)(<\/td>[\s\S]*?<\/tr>)/);
+        if (secondRowMatch) {
+            // Reemplazar solo el contenido del td
+            return fullHtml.replace(secondRowMatch[0], secondRowMatch[1] + newContent + secondRowMatch[3]);
+        }
+    }
+    
+    // Fallback: método simple
+    const temp = document.createElement('div');
+    temp.innerHTML = fullHtml;
+    const secondRow = temp.querySelector('table tr:nth-child(2) td');
+    if (secondRow) {
+        secondRow.innerHTML = newContent;
+        return temp.innerHTML;
+    }
+    return fullHtml;
+}
+
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar Quill para cada textarea
+    document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     const textareaId = textarea.id;
     let quillInstance = null;
     let isCodeMode = true; // Iniciar en modo código para preservar HTML
     let originalHtml = textarea.value; // Guardar HTML original
     
+    // Crear contenedor para vista previa cuando hay tablas
+    const previewContainer = document.createElement('div');
+    previewContainer.id = `preview_${textareaId}`;
+    previewContainer.style.display = 'none';
+    previewContainer.style.border = '1px solid #ddd';
+    previewContainer.style.borderRadius = '4px';
+    previewContainer.style.padding = '10px';
+    previewContainer.style.marginBottom = '10px';
+    previewContainer.style.backgroundColor = '#f9f9f9';
+    previewContainer.innerHTML = '<small class="text-muted"><i class="fas fa-info-circle me-1"></i>Vista previa del email completo</small><iframe id="preview_iframe_' + textareaId + '" style="width: 100%; height: 400px; border: 1px solid #ddd; margin-top: 10px;"></iframe>';
+    
     // Crear contenedor para Quill
     const quillContainer = document.createElement('div');
     quillContainer.id = `quill_${textareaId}`;
     quillContainer.style.height = '400px';
-    textarea.insertAdjacentElement('afterend', quillContainer);
+    
+    // Insertar primero preview después del textarea, luego quill después del preview
+    textarea.insertAdjacentElement('afterend', previewContainer);
+    previewContainer.insertAdjacentElement('afterend', quillContainer);
     
     // Inicializar Quill (pero mantenerlo oculto inicialmente)
     quillInstance = new Quill(`#quill_${textareaId}`, {
@@ -130,74 +191,6 @@ document.querySelectorAll('textarea[name="cuerpo_html"]').forEach(textarea => {
     quillContainer.style.display = 'none';
     textarea.style.display = 'block';
     textarea.classList.add('font-monospace');
-    
-    // Función para detectar si el HTML es complejo (tiene tablas, estilos inline, etc.)
-    function hasComplexHTML(html) {
-        if (!html) return false;
-        return html.includes('<table') || 
-               html.includes('<tr') ||
-               html.includes('<td') ||
-               html.includes('cellpadding') ||
-               html.includes('cellspacing');
-    }
-    
-    // Función para extraer solo el contenido de la segunda fila (td) del HTML
-    function extractSecondRowContent(html) {
-        // Crear un elemento temporal para parsear
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        const secondRow = temp.querySelector('table tr:nth-child(2) td');
-        if (secondRow) {
-            return secondRow.innerHTML;
-        }
-        return html;
-    }
-    
-    // Función para reemplazar solo el contenido de la segunda fila
-    function replaceSecondRowContent(fullHtml, newContent) {
-        // Buscar la segunda fila (tr) y su td
-        const regex = /(<tr[^>]*>[\s\S]*?<td[^>]*>)([\s\S]*?)(<\/td>[\s\S]*?<\/tr>)/;
-        const matches = fullHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
-        
-        if (matches && matches.length >= 2) {
-            // Encontrar la segunda fila completa
-            const secondRowMatch = matches[1].match(/(<tr[^>]*>[\s\S]*?<td[^>]*>)([\s\S]*?)(<\/td>[\s\S]*?<\/tr>)/);
-            if (secondRowMatch) {
-                // Reemplazar solo el contenido del td
-                return fullHtml.replace(secondRowMatch[0], secondRowMatch[1] + newContent + secondRowMatch[3]);
-            }
-        }
-        
-        // Fallback: método simple
-        const temp = document.createElement('div');
-        temp.innerHTML = fullHtml;
-        const secondRow = temp.querySelector('table tr:nth-child(2) td');
-        if (secondRow) {
-            secondRow.innerHTML = newContent;
-            return temp.innerHTML;
-        }
-        return fullHtml;
-    }
-    
-    // Crear contenedor para Quill
-    const quillContainer = document.createElement('div');
-    quillContainer.id = `quill_${textareaId}`;
-    quillContainer.style.height = '400px';
-    
-    // Crear contenedor para vista previa cuando hay tablas
-    const previewContainer = document.createElement('div');
-    previewContainer.id = `preview_${textareaId}`;
-    previewContainer.style.display = 'none';
-    previewContainer.style.border = '1px solid #ddd';
-    previewContainer.style.borderRadius = '4px';
-    previewContainer.style.padding = '10px';
-    previewContainer.style.marginBottom = '10px';
-    previewContainer.style.backgroundColor = '#f9f9f9';
-    previewContainer.innerHTML = '<small class="text-muted"><i class="fas fa-info-circle me-1"></i>Vista previa del email completo</small><iframe id="preview_iframe_' + textareaId + '" style="width: 100%; height: 400px; border: 1px solid #ddd; margin-top: 10px;"></iframe>';
-    
-    // Insertar primero preview después del textarea, luego quill después del preview
-    textarea.insertAdjacentElement('afterend', previewContainer);
-    previewContainer.insertAdjacentElement('afterend', quillContainer);
     
     // Sincronizar contenido a textarea cuando se edita en Quill
     quillInstance.on('text-change', function() {
@@ -308,7 +301,13 @@ document.querySelectorAll('.plantilla-form').forEach(form => {
             // Si estamos en modo visual, sincronizar Quill -> textarea
             if (quillInstances[textareaId] && !quillInstances[textareaId].isCodeMode) {
                 const quillInstance = quillInstances[textareaId].instance;
-                textarea.value = quillInstance.root.innerHTML;
+                if (quillInstances[textareaId].fullHtml) {
+                    // Si hay HTML completo, reconstruir
+                    const editedContent = quillInstance.root.innerHTML;
+                    textarea.value = replaceSecondRowContent(quillInstances[textareaId].fullHtml, editedContent);
+                } else {
+                    textarea.value = quillInstance.root.innerHTML;
+                }
             }
         }
         
@@ -346,6 +345,7 @@ document.querySelectorAll('.plantilla-form').forEach(form => {
             showToast('Error de conexión', 'danger');
         }
     });
+});
 });
 </script>
 
