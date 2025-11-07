@@ -149,11 +149,14 @@
                     <div class="col-12">
                         <div class="input-group">
                             <input type="file" class="form-control" id="input-excel" accept=".xls,.xlsx" onchange="leerArchivoExcel();">
-                            <label class="input-group-text" for="input-excel">
+                            <span class="input-group-text">
                                 <i class="fas fa-upload me-2"></i>
-                                Subir Excel
-                            </label>
+                                Se procesará automáticamente
+                            </span>
                         </div>
+                        <small class="text-muted d-block mt-2">
+                            Al seleccionar el archivo se cargará automáticamente; no es necesario presionar otro botón.
+                        </small>
                     </div>
                 </div>
             </div>
