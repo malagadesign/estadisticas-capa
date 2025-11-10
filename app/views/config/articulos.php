@@ -19,7 +19,7 @@
                         <div class="alert alert-info mb-0 mt-2">
                             <i class="fas fa-filter me-2"></i>
                             Filtrando por familia: <strong><?= e($familiaNombre) ?></strong>
-                            <a href="<?= route('/config/articulos') ?>" class="btn btn-sm btn-outline-info ms-2">
+                            <a href="<?= route('/panel/config/articulos') ?>" class="btn btn-sm btn-outline-info ms-2">
                                 <i class="fas fa-times me-1"></i> Quitar filtro
                             </a>
                         </div>
@@ -178,7 +178,7 @@ async function guardarArticulo() {
     const formData = new FormData(form);
     
     const did = formData.get('did');
-    const url = did ? '<?= route('/config/articulos/update') ?>' : '<?= route('/config/articulos/create') ?>';
+    const url = did ? '<?= route('/panel/config/articulos/update') ?>' : '<?= route('/panel/config/articulos/create') ?>';
     
     formData.set('habilitado', document.getElementById('articulo_habilitado').checked ? 1 : 0);
     
@@ -218,7 +218,7 @@ async function eliminarArticulo(did, nombre) {
     formData.append('did', did);
     
     try {
-        const response = await fetch('<?= route('/config/articulos/delete') ?>', {
+        const response = await fetch('<?= route('/panel/config/articulos/delete') ?>', {
             method: 'POST',
             body: formData
         });

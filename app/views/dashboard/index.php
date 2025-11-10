@@ -150,7 +150,7 @@
                     </a>
                     
                     <?php if ($isAdmin): ?>
-                        <a href="<?= route('/config/encuestas') ?>" class="list-group-item list-group-item-action">
+                        <a href="<?= route('/panel/config/encuestas') ?>" class="list-group-item list-group-item-action">
                             <i class="fas fa-cog me-2" style="color: var(--capa-purpura);"></i>
                             Gestionar Encuestas
                         </a>

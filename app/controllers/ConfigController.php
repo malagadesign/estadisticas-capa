@@ -10,7 +10,7 @@ class ConfigController {
      * Vista principal - redirige a mercados
      */
     public function index() {
-        View::redirect('/config/mercados');
+        View::redirect('/panel/config/mercados');
     }
     
     // ============================================

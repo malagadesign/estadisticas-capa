@@ -3,6 +3,7 @@ $userName = Session::get('user_name', 'Usuario');
 $userType = Session::get('user_type', '');
 $isAdmin = Session::isAdmin();
 $currentPath = Request::url();
+$configPrefix = '/panel/config';
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-capa sticky-top">
@@ -45,39 +46,39 @@ $currentPath = Request::url();
                 <?php if ($isAdmin): ?>
                 <!-- Configuración (solo admin) -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle <?= strpos($currentPath, '/config') !== false ? 'active' : '' ?>" 
+                    <a class="nav-link dropdown-toggle <?= strpos($currentPath, $configPrefix) !== false ? 'active' : '' ?>" 
                        href="#" id="navConfig" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-cog me-1"></i> Configuración
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navConfig">
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/rubros') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/rubros') ?>">
                                 <i class="fas fa-th-large me-2"></i> Rubros
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/familias') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/familias') ?>">
                                 <i class="fas fa-layer-group me-2"></i> Familias
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/articulos') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/articulos') ?>">
                                 <i class="fas fa-box me-2"></i> Artículos
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/mercados') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/mercados') ?>">
                                 <i class="fas fa-store me-2"></i> Mercados
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/encuestas') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/encuestas') ?>">
                                 <i class="fas fa-clipboard-list me-2"></i> Encuestas
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="<?= route('/config/notificaciones') ?>">
+                            <a class="dropdown-item" href="<?= route($configPrefix . '/notificaciones') ?>">
                                 <i class="fas fa-bell me-2"></i> Notificaciones
                             </a>
                         </li>

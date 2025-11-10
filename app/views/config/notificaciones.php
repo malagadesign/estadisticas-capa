@@ -324,7 +324,7 @@ document.querySelectorAll('.plantilla-form').forEach(form => {
         };
         
         try {
-            const response = await fetch('<?= route('/config/notificaciones/update') ?>', {
+            const response = await fetch('<?= route('/panel/config/notificaciones/update') ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

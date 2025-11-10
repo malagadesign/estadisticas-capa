@@ -134,7 +134,7 @@ async function guardarMercado() {
     const formData = new FormData(form);
     
     const did = formData.get('did');
-    const url = did ? '<?= route('/config/mercados/update') ?>' : '<?= route('/config/mercados/create') ?>';
+    const url = did ? '<?= route('/panel/config/mercados/update') ?>' : '<?= route('/panel/config/mercados/create') ?>';
     
     // Convertir checkbox a 1/0
     formData.set('habilitado', document.getElementById('mercado_habilitado').checked ? 1 : 0);
@@ -175,7 +175,7 @@ async function eliminarMercado(did, nombre) {
     formData.append('did', did);
     
     try {
-        const response = await fetch('<?= route('/config/mercados/delete') ?>', {
+        const response = await fetch('<?= route('/panel/config/mercados/delete') ?>', {
             method: 'POST',
             body: formData
         });

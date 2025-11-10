@@ -106,7 +106,7 @@
 const rubros = <?= json_encode($rubros) ?>;
 
 function verFamilias(idRubro) {
-    window.location.href = '<?= route('/config/familias') ?>?rubro=' + idRubro;
+    window.location.href = '<?= route('/panel/config/familias') ?>?rubro=' + idRubro;
 }
 
 function abrirModal(did) {
@@ -135,7 +135,7 @@ async function guardarRubro() {
     const formData = new FormData(form);
     
     const did = formData.get('did');
-    const url = did ? '<?= route('/config/rubros/update') ?>' : '<?= route('/config/rubros/create') ?>';
+    const url = did ? '<?= route('/panel/config/rubros/update') ?>' : '<?= route('/panel/config/rubros/create') ?>';
     
     formData.set('habilitado', document.getElementById('rubro_habilitado').checked ? 1 : 0);
     
@@ -175,7 +175,7 @@ async function eliminarRubro(did, nombre) {
     formData.append('did', did);
     
     try {
-        const response = await fetch('<?= route('/config/rubros/delete') ?>', {
+        const response = await fetch('<?= route('/panel/config/rubros/delete') ?>', {
             method: 'POST',
             body: formData
         });

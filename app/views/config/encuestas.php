@@ -305,7 +305,7 @@ async function guardarEncuesta() {
     }
     
     const did = formData.get('did');
-    const url = (did && did !== '0') ? '<?= route('/config/encuestas/update') ?>' : '<?= route('/config/encuestas/create') ?>';
+    const url = (did && did !== '0') ? '<?= route('/panel/config/encuestas/update') ?>' : '<?= route('/panel/config/encuestas/create') ?>';
     
     // Preparar datos para envío
     const data = {
@@ -380,7 +380,7 @@ async function eliminarEncuesta(did, nombre) {
     formData.append('did', did);
     
     try {
-        const response = await fetch('<?= route('/config/encuestas/delete') ?>', {
+        const response = await fetch('<?= route('/panel/config/encuestas/delete') ?>', {
             method: 'POST',
             headers: {
                 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
@@ -408,7 +408,7 @@ async function notificarSocios(did, nombre) {
     }
     
     try {
-        const response = await fetch('<?= route('/config/encuestas/notificar') ?>', {
+        const response = await fetch('<?= route('/panel/config/encuestas/notificar') ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

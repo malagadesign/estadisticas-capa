@@ -19,7 +19,7 @@
                         <div class="alert alert-info mb-0 mt-2">
                             <i class="fas fa-filter me-2"></i>
                             Filtrando por rubro: <strong><?= e($rubroNombre) ?></strong>
-                            <a href="<?= route('/config/familias') ?>" class="btn btn-sm btn-outline-info ms-2">
+                            <a href="<?= route('/panel/config/familias') ?>" class="btn btn-sm btn-outline-info ms-2">
                                 <i class="fas fa-times me-1"></i> Quitar filtro
                             </a>
                         </div>
@@ -152,7 +152,7 @@
 const familias = <?= json_encode($familias) ?>;
 
 function verArticulos(idFamilia) {
-    window.location.href = '<?= route('/config/articulos') ?>?familia=' + idFamilia;
+    window.location.href = '<?= route('/panel/config/articulos') ?>?familia=' + idFamilia;
 }
 
 function abrirModal(did) {
@@ -182,7 +182,7 @@ async function guardarFamilia() {
     const formData = new FormData(form);
     
     const did = formData.get('did');
-    const url = did ? '<?= route('/config/familias/update') ?>' : '<?= route('/config/familias/create') ?>';
+    const url = did ? '<?= route('/panel/config/familias/update') ?>' : '<?= route('/panel/config/familias/create') ?>';
     
     formData.set('habilitado', document.getElementById('familia_habilitado').checked ? 1 : 0);
     
@@ -222,7 +222,7 @@ async function eliminarFamilia(did, nombre) {
     formData.append('did', did);
     
     try {
-        const response = await fetch('<?= route('/config/familias/delete') ?>', {
+        const response = await fetch('<?= route('/panel/config/familias/delete') ?>', {
             method: 'POST',
             body: formData
         });
