@@ -268,13 +268,25 @@
         const modalElement = document.getElementById('feedbackModal');
 
         if (!modalElement) {
-            // Si no existe el modal, fallback a toast
-            showToast(message, type === 'primary' ? 'info' : type);
             return;
         }
 
+        const header = modalElement.querySelector('.modal-header');
+        header.classList.remove('bg-primary', 'bg-success', 'bg-danger', 'text-white');
+
+        const typeMap = {
+            primary: 'bg-primary',
+            success: 'bg-success',
+            danger: 'bg-danger',
+            warning: 'bg-warning'
+        };
+
+        const headerClass = typeMap[type] || typeMap.primary;
+        header.classList.add(headerClass);
+        header.classList.add('text-white');
+
         modalTitle.textContent = title || 'Información';
-        modalBody.innerHTML = `<p class="mb-0">${message}</p>`;
+        modalBody.innerHTML = `<div class="modal-message">${message}</div>`;
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         modal.show();

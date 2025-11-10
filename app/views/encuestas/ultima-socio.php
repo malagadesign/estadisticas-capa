@@ -195,8 +195,6 @@ function mostrarResultadoExcel(mensaje, tipo = 'success') {
     if (window.showFeedbackModal) {
         showFeedbackModal(titulos[tipo] || 'Información', mensaje, tipo);
     }
-
-    showToast(mensaje, tipo);
 }
 
 // Función auxiliar: obtener nombre del artículo por did
@@ -876,7 +874,9 @@ async function procesarArchivoExcel() {
     
     if (errores.length > 0) {
         const listaErrores = errores.map(err => `<li>${err}</li>`).join('');
-        const mensajeErrores = `Se detectaron ${errores.length} errores en el archivo.<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
+        const cantidadErrores = errores.length;
+        const textoCantidad = cantidadErrores === 1 ? 'Se detectó 1 error en el archivo.' : `Se detectaron ${cantidadErrores} errores en el archivo.`;
+        const mensajeErrores = `${textoCantidad}<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
         mostrarResultadoExcel(mensajeErrores, 'danger');
         return;
     }
@@ -924,11 +924,15 @@ async function procesarArchivoExcel() {
     
     if (errores.length > 0) {
         const listaErrores = errores.map(err => `<li>${err}</li>`).join('');
-        const mensajeErrores = `${modificaciones} celdas se actualizaron correctamente, pero hubo ${errores.length} errores.<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
+        const cantidadErrores = errores.length;
+        const textoErrores = cantidadErrores === 1 ? '1 error' : `${cantidadErrores} errores`;
+        const textoModificaciones = modificaciones === 1 ? '1 celda se actualizó correctamente' : `${modificaciones} celdas se actualizaron correctamente`;
+        const mensajeErrores = `${textoModificaciones}, pero hubo ${textoErrores}.<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
         mostrarResultadoExcel(mensajeErrores, 'warning');
         console.error('[Excel] Errores:', errores);
     } else {
-        mostrarResultadoExcel(`Archivo procesado correctamente. Se actualizaron ${modificaciones} valores.`, 'success');
+        const textoModificaciones = modificaciones === 1 ? 'Se actualizó 1 valor.' : `Se actualizaron ${modificaciones} valores.`;
+        mostrarResultadoExcel(`Archivo procesado correctamente. ${textoModificaciones}`, 'success');
     }
     
     // Limpiar input
