@@ -875,7 +875,9 @@ async function procesarArchivoExcel() {
     });
     
     if (errores.length > 0) {
-        mostrarResultadoExcel(`Error: Hay valores no válidos en el Excel (${errores.length} errores)`, 'danger');
+        const listaErrores = errores.map(err => `<li>${err}</li>`).join('');
+        const mensajeErrores = `Se detectaron ${errores.length} errores en el archivo.<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
+        mostrarResultadoExcel(mensajeErrores, 'danger');
         return;
     }
     
@@ -921,7 +923,9 @@ async function procesarArchivoExcel() {
     }
     
     if (errores.length > 0) {
-        mostrarResultadoExcel(`Procesado con ${modificaciones} celdas exitosas y ${errores.length} errores. Revise el detalle en consola.`, 'warning');
+        const listaErrores = errores.map(err => `<li>${err}</li>`).join('');
+        const mensajeErrores = `${modificaciones} celdas se actualizaron correctamente, pero hubo ${errores.length} errores.<br><br><strong>Detalle:</strong><ul class="text-start mt-2">${listaErrores}</ul>`;
+        mostrarResultadoExcel(mensajeErrores, 'warning');
         console.error('[Excel] Errores:', errores);
     } else {
         mostrarResultadoExcel(`Archivo procesado correctamente. Se actualizaron ${modificaciones} valores.`, 'success');
