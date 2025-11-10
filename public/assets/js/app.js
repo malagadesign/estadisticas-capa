@@ -198,6 +198,27 @@
             toastContainer.remove();
         }, 5000);
     };
+
+    // ==========================================
+    // HELPER: MOSTRAR MODAL DESTACADO
+    // ==========================================
+    window.showFeedbackModal = function(title, message, type = 'primary') {
+        const modalTitle = document.getElementById('feedbackModalTitle');
+        const modalBody = document.getElementById('feedbackModalBody');
+        const modalElement = document.getElementById('feedbackModal');
+
+        if (!modalElement) {
+            // Si no existe el modal, fallback a toast
+            showToast(message, type === 'primary' ? 'info' : type);
+            return;
+        }
+
+        modalTitle.textContent = title || 'Información';
+        modalBody.innerHTML = `<p class="mb-0">${message}</p>`;
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    };
     
     // ==========================================
     // DEBUG INFO (solo development)

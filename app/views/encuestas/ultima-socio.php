@@ -185,6 +185,20 @@ let articulosPorFamiliaMap = {}; // Para mapeo rápido familia -> artículos
 let paginaActual = 1;
 const articulosPorPagina = 50;
 
+function mostrarResultadoExcel(mensaje, tipo = 'success') {
+    const titulos = {
+        success: 'Carga procesada',
+        warning: 'Atención',
+        danger: 'Error en la carga'
+    };
+
+    if (window.showFeedbackModal) {
+        showFeedbackModal(titulos[tipo] || 'Información', mensaje, tipo);
+    }
+
+    showToast(mensaje, tipo);
+}
+
 // Función auxiliar: obtener nombre del artículo por did
 function obtenerNombreArticulo(did) {
     const articulo = todosLosArticulos.find(a => a.did === did);
@@ -679,12 +693,12 @@ async function crearArchivoExcel() {
         console.error('[Excel] writeBuffer error:', err);
         console.timeEnd('[Excel] generar');
         console.groupEnd();
-        showToast('Error generando Excel (ver consola)', 'danger');
+        mostrarResultadoExcel('Error generando Excel (ver consola)', 'danger');
     });
     } catch (e) {
         console.error('[Excel] crearArchivoExcel error:', e);
         console.groupEnd();
-        showToast('Error inesperado generando Excel (ver consola)', 'danger');
+        mostrarResultadoExcel('Error inesperado generando Excel (ver consola)', 'danger');
     }
 }
 
@@ -738,11 +752,13 @@ function leerArchivoExcel() {
                 procesarArchivoExcel();
             }).catch(function(err) {
                 console.error('[Excel] Error cargando workbook:', err);
-                showToast('Error procesando Excel: ' + err.message, 'danger');
+                mostrarResultadoExcel('Error procesando Excel: ' + err.message, 'danger');
+                console.error('[Excel] Error detallado:', err);
             });
         } catch (e) {
             console.error('[Excel] Error en onload:', e);
-            showToast('Error procesando archivo: ' + e.message, 'danger');
+            mostrarResultadoExcel('Error procesando archivo: ' + e.message, 'danger');
+            console.error('[Excel] Error capturado:', e);
         }
     };
     
@@ -784,7 +800,7 @@ async function procesarArchivoExcel() {
     });
     
     if (!sinErrores) {
-        showToast('Error: Versión de modelo Excel incorrecta', 'danger');
+        mostrarResultadoExcel('Error: Versión de modelo Excel incorrecta', 'danger');
         return;
     }
     
@@ -874,7 +890,7 @@ async function procesarArchivoExcel() {
     });
     
     if (errores.length > 0) {
-        showToast(`Error: Hay valores no numéricos en el Excel (${errores.length} errores)`, 'danger');
+        mostrarResultadoExcel(`Error: Hay valores no válidos en el Excel (${errores.length} errores)`, 'danger');
         return;
     }
     
@@ -920,10 +936,10 @@ async function procesarArchivoExcel() {
     }
     
     if (errores.length > 0) {
-        showToast(`Procesado con ${modificaciones} exitosas y ${errores.length} errores`, 'warning');
+        mostrarResultadoExcel(`Procesado con ${modificaciones} celdas exitosas y ${errores.length} errores. Revise el detalle en consola.`, 'warning');
         console.error('[Excel] Errores:', errores);
     } else {
-        showToast(`Archivo procesado: ${modificaciones} celdas guardadas correctamente`, 'success');
+        mostrarResultadoExcel(`Archivo procesado correctamente. Se actualizaron ${modificaciones} valores.`, 'success');
     }
     
     // Limpiar input
