@@ -17,8 +17,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
-    <link rel="stylesheet" href="<?= asset('css/mobile.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/main.css') ?>?v=<?= APP_VERSION ?>">
+    <link rel="stylesheet" href="<?= asset('css/mobile.css') ?>?v=<?= APP_VERSION ?>">
     
     <!-- CSS adicional (opcional) -->
     <?php if (isset($css) && is_array($css)): ?>
@@ -82,7 +82,7 @@
     </script>
     
     <!-- App JS -->
-    <script src="<?= asset('js/app.js') ?>"></script>
+    <script src="<?= asset('js/app.js') ?>?v=<?= APP_VERSION ?>"></script>
     
     <!-- JS adicional (opcional) -->
     <?php if (isset($js) && is_array($js)): ?>
