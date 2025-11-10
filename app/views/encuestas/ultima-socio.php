@@ -498,27 +498,6 @@ function limpiarInputEnTiempoReal(input) {
     }
 }
 
-// Limpiar valor pegado (eliminar puntos y decimales)
-function limpiarValorPegado(valorTexto) {
-    if (!valorTexto) return '';
-    
-    // Convertir a string y eliminar espacios
-    let valor = String(valorTexto).trim();
-    
-    // Si tiene coma, eliminar todo lo que viene después de la coma (decimales)
-    if (valor.includes(',')) {
-        valor = valor.split(',')[0];
-    }
-    
-    // Eliminar todos los puntos (separadores de miles)
-    valor = valor.replace(/\./g, '');
-    
-    // Eliminar cualquier otro carácter que no sea número
-    valor = valor.replace(/[^\d]/g, '');
-    
-    return valor;
-}
-
 // Validar y normalizar valor
 function validarYNormalizar(valorTexto, tipo) {
     // Primero limpiar el valor pegado (eliminar puntos y decimales)
@@ -829,10 +808,14 @@ async function procesarArchivoExcel() {
             if (valorCelda != null && valorCelda !== undefined && valorCelda !== '') {
                 let dato = String(valorCelda).trim();
                 
-                // Si después de trim queda vacío, ignorar
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Cantidad ${did} vacía, ignorando`);
                 } else {
+                    if (tieneDecimales(dato)) {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: no se permiten decimales (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Cantidad ${did} tiene decimales:`, dato);
+                        return;
+                    }
                     // Limpiar valor usando la función de limpieza (eliminar puntos y decimales)
                     let datoLimpioTexto = limpiarValorPegado(dato);
                     let datoLimpio = parseInt(datoLimpioTexto) || 0;
@@ -864,6 +847,11 @@ async function procesarArchivoExcel() {
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Valor ${did} vacía, ignorando`);
                 } else {
+                    if (tieneDecimales(dato)) {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Valor: no se permiten decimales (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Valor ${did} tiene decimales:`, dato);
+                        return;
+                    }
                     // Limpiar valor usando la función de limpieza (eliminar puntos y decimales)
                     let datoLimpioTexto = limpiarValorPegado(dato);
                     let datoLimpio = parseInt(datoLimpioTexto) || 0;
