@@ -149,6 +149,66 @@
         }
         input.value = valor;
     };
+
+    // ==========================================
+    // HELPER: DETECTAR DECIMALES Y LIMPIAR ENTRADAS NUMÉRICAS
+    // ==========================================
+    window.tieneDecimales = function(valorTexto) {
+        if (!valorTexto) return false;
+        const valor = String(valorTexto).trim();
+
+        if (valor.includes(',')) {
+            const partes = valor.split(',');
+            if (partes.length > 1 && /\d/.test(partes[1])) {
+                return true;
+            }
+        }
+
+        if (valor.includes('.') && !valor.includes(',')) {
+            const partes = valor.split('.');
+            const ultimaParte = partes[partes.length - 1];
+
+            if (ultimaParte.length !== 3) {
+                return true;
+            }
+
+            for (let i = 1; i < partes.length - 1; i++) {
+                if (partes[i].length !== 3) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    window.limpiarValorPegado = function(valorTexto) {
+        if (!valorTexto) return '';
+        let valor = String(valorTexto).trim();
+
+        if (valor.includes(',')) {
+            valor = valor.split(',')[0];
+        }
+
+        valor = valor.replace(/\./g, '');
+        valor = valor.replace(/[^\d]/g, '');
+
+        return valor;
+    };
+
+    window.limpiarInputEnTiempoReal = function(input) {
+        const valorActual = input.value;
+        const valorLimpio = limpiarValorPegado(valorActual);
+
+        if (valorActual !== valorLimpio) {
+            const posicionCursor = input.selectionStart || valorLimpio.length;
+            input.value = valorLimpio;
+            if (input.setSelectionRange) {
+                const nuevaPos = Math.max(0, posicionCursor - (valorActual.length - valorLimpio.length));
+                input.setSelectionRange(nuevaPos, nuevaPos);
+            }
+        }
+    };
     
     // ==========================================
     // HELPER: FETCH CON CSRF TOKEN

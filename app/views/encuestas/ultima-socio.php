@@ -497,21 +497,6 @@ function manejarPegado(input, event) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-// Limpiar input en tiempo real mientras se escribe
-function limpiarInputEnTiempoReal(input) {
-    const valorActual = input.value;
-    const valorLimpio = limpiarValorPegado(valorActual);
-    
-    // Si el valor cambió después de limpiar, actualizarlo
-    if (valorActual !== valorLimpio) {
-        const posicionCursor = input.selectionStart;
-        input.value = valorLimpio;
-        // Mantener la posición del cursor
-        const nuevaPosicion = Math.max(0, posicionCursor - (valorActual.length - valorLimpio.length));
-        input.setSelectionRange(nuevaPosicion, nuevaPosicion);
-    }
-}
-
 // Validar y normalizar valor
 function validarYNormalizar(valorTexto, tipo) {
     // Primero limpiar el valor pegado (eliminar puntos y decimales)
