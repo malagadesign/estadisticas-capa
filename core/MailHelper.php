@@ -149,23 +149,47 @@ class MailHelper {
                 'link_acceso' => $url
             ]);
 
-            $headerPath = ROOT_PATH . '/public/assets/images/head-nueva-encuesta.jpg';
-            if (file_exists($headerPath)) {
-                $cid = 'headerEmail';
-                $mail->addEmbeddedImage($headerPath, $cid, 'head-nueva-encuesta.jpg');
-                $bodyHtml = str_replace(
-                    [
-                        'https://estadistica-capa.org.ar/public/assets/images/head-nueva-encuesta.jpg',
-                        'http://estadistica-capa.org.ar/public/assets/images/head-nueva-encuesta.jpg',
-                        '{header_image}'
-                    ],
-                    'cid:' . $cid,
-                    $bodyHtml
-                );
-            } else {
-                error_log('MailHelper: imagen de encabezado no encontrada en ' . $headerPath);
+            $headers = [
+                'head-bienvenida.jpg' => 'headerBienvenida',
+                'head-nueva-encuesta.jpg' => 'headerNuevaEncuesta',
+                'head-recordatorio.jpg' => 'headerRecordatorio'
+            ];
+
+            foreach ($headers as $fileName => $cid) {
+                $headerPath = ROOT_PATH . '/public/assets/images/' . $fileName;
+                if (!file_exists($headerPath)) {
+                    continue;
+                }
+
+                $patterns = [
+                    'https://estadistica-capa.org.ar/public/assets/images/' . $fileName,
+                    'http://estadistica-capa.org.ar/public/assets/images/' . $fileName,
+                    '{' . $cid . '}'
+                ];
+
+                $matched = false;
+                foreach ($patterns as $pattern) {
+                    if (stripos($bodyHtml, $pattern) !== false) {
+                        $matched = true;
+                        break;
+                    }
+                }
+
+                if (!$matched) {
+                    continue;
+                }
+
+                $mail->addEmbeddedImage($headerPath, $cid, $fileName);
+                $bodyHtml = str_replace($patterns, 'cid:' . $cid, $bodyHtml);
             }
 
+            // Asegurar que la plantilla de bienvenida no incluya headers de otras notificaciones
+            $bodyHtml = preg_replace(
+                '/<[^>]*img[^>]*head-(?:nueva-encuesta|recordatorio)\.jpg[^>]*>\s*/i',
+                '',
+                $bodyHtml
+            );
+            
             $mail->Body = $bodyHtml;
             
             $mail->send();
