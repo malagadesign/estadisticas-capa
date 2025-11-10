@@ -226,8 +226,27 @@ class UsuariosController {
                     ['ssii', $usuario, $mail, $habilitado, $did]
                 );
             }
-            
-            View::json(['success' => true, 'message' => 'Usuario actualizado correctamente']);
+
+            // Obtener datos actualizados para enviar notificación
+            $usuarioActual = $db->fetchOne(
+                "SELECT did, usuario, mail, tipo, habilitado, `hash` FROM usuarios WHERE did = ? LIMIT 1",
+                ['i', $did]
+            );
+
+            if ($usuarioActual && (int)$usuarioActual['habilitado'] === 1) {
+                $hash = $usuarioActual['hash'] ?? '';
+                if (empty($hash)) {
+                    $hash = bin2hex(random_bytes(16));
+                    $db->query(
+                        "UPDATE usuarios SET `hash` = ? WHERE did = ?",
+                        ['si', $hash, $did]
+                    );
+                }
+
+                MailHelper::enviarBienvenida($usuarioActual['usuario'], $usuarioActual['mail'], $hash);
+            }
+
+            View::json(['success' => true, 'message' => 'Usuario actualizado correctamente. Se envió un email con el enlace de acceso.']);
         } catch (Exception $e) {
             error_log("Error actualizando usuario: " . $e->getMessage());
             View::json(['success' => false, 'message' => 'Error al actualizar'], 500);
