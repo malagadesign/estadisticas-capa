@@ -724,28 +724,35 @@ class ConfigController {
                 'link_sistema' => env('APP_URL', 'https://estadistica-capa.org.ar')
             ]);
             
-            // Enviar email a cada socio
+            // Enviar email a cada socio activo
             $enviados = 0;
             $errores = 0;
-            $emailPrueba = 'micaela@malaga-design.com.ar';
-            
+            $enviadosA = [];
+
             foreach ($socios as $socio) {
-                // MODO PRUEBA: Solo enviar a email de prueba
-                // TODO: Quitar este filtro cuando se confirme que funciona correctamente
-                if ($socio['mail'] !== $emailPrueba) {
+                $emailDestino = trim($socio['mail'] ?? '');
+                if (empty($emailDestino)) {
+                    $errores++;
+                    error_log("Encuestas_notificar: socio {$socio['did']} sin email configurado");
                     continue;
                 }
-                
+
+                // Evitar enviar duplicados si varias cuentas comparten mail
+                if (isset($enviadosA[strtolower($emailDestino)])) {
+                    continue;
+                }
+
                 try {
-                    MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
+                    MailHelper::enviarEmail($emailDestino, $asunto, $cuerpoHtml);
                     $enviados++;
-                    error_log("Email enviado exitosamente a: {$socio['mail']}");
+                    $enviadosA[strtolower($emailDestino)] = true;
+                    error_log("Email enviado exitosamente a: {$emailDestino}");
                 } catch (Exception $e) {
                     $errores++;
-                    error_log("Error enviando email a {$socio['mail']}: " . $e->getMessage());
+                    error_log("Error enviando email a {$emailDestino}: " . $e->getMessage());
                 }
             }
-            
+ 
             View::json([
                 'success' => true, 
                 'message' => "Notificaciones enviadas: {$enviados} exitosos" . ($errores > 0 ? ", {$errores} errores" : "")
