@@ -535,13 +535,18 @@ class EncuestasController {
             // Enviar email a cada socio que falta
             $enviados = 0;
             $errores = 0;
-            $emailPrueba = 'micaela@malaga-design.com.ar';
             $appUrl = env('APP_URL', 'https://estadistica-capa.org.ar');
+            $enviadosA = [];
             
             foreach ($sociosFaltan as $socio) {
-                // MODO PRUEBA: Solo enviar a email de prueba
-                // TODO: Quitar este filtro cuando se confirme que funciona correctamente
-                if ($socio['mail'] !== $emailPrueba) {
+                $emailDestino = trim($socio['mail'] ?? '');
+                if (empty($emailDestino)) {
+                    $errores++;
+                    error_log("Seguimiento recordatorio: socio {$socio['usuario']} sin email configurado");
+                    continue;
+                }
+
+                if (isset($enviadosA[strtolower($emailDestino)])) {
                     continue;
                 }
                 
@@ -552,7 +557,7 @@ class EncuestasController {
                 }
                 
                 // Generar link de acceso personalizado
-                $linkAcceso = $appUrl . "/v2/log?h=" . $socio['hash'];
+                $linkAcceso = $appUrl . "/log?h=" . $socio['hash'];
                 
                 // Procesar variables dinámicas para este socio
                 $asunto = MailHelper::procesarPlantillaPublic($plantilla['asunto'], [
@@ -568,12 +573,13 @@ class EncuestasController {
                 ]);
                 
                 try {
-                    MailHelper::enviarEmail($socio['mail'], $asunto, $cuerpoHtml);
+                    MailHelper::enviarEmail($emailDestino, $asunto, $cuerpoHtml);
                     $enviados++;
-                    error_log("Recordatorio enviado a: {$socio['mail']}");
+                    $enviadosA[strtolower($emailDestino)] = true;
+                    error_log("Recordatorio enviado a: {$emailDestino}");
                 } catch (Exception $e) {
                     $errores++;
-                    error_log("Error enviando recordatorio a {$socio['mail']}: " . $e->getMessage());
+                    error_log("Error enviando recordatorio a {$emailDestino}: " . $e->getMessage());
                 }
             }
             
