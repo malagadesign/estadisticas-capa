@@ -208,13 +208,13 @@ class Encuesta {
             $idInsertado = $this->db->insert(
                 "INSERT INTO articulosUsuarios 
                  (didUsuario, didArticulo, habilitado, superado, elim, quien) 
-                 VALUES (?, ?, 0, 0, 0, ?)",
+                 VALUES (?, ?, 1, 0, 0, ?)",
                 ['iii', $usuarioDid, $articuloDid, $usuarioDid]
             );
             
             error_log("DEBUG toggleArticuloSocio - Id insertado: $idInsertado");
-            error_log("DEBUG toggleArticuloSocio - Retornando 0");
-            return 0;
+            error_log("DEBUG toggleArticuloSocio - Retornando 1");
+            return 1;
         }
     }
     
