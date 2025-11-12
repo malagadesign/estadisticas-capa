@@ -185,6 +185,20 @@ let articulosPorFamiliaMap = {}; // Para mapeo rápido familia -> artículos
 let paginaActual = 1;
 const articulosPorPagina = 50;
 
+function esArticuloHabilitado(didArticulo) {
+    const key = String(didArticulo);
+
+    if (Object.prototype.hasOwnProperty.call(articulosHabilitados, key)) {
+        return !!articulosHabilitados[key];
+    }
+
+    if (Object.prototype.hasOwnProperty.call(articulosDeshabilitados, key)) {
+        return false;
+    }
+
+    return false;
+}
+
 function mostrarResultadoExcel(mensaje, tipo = 'success') {
     const titulos = {
         success: 'Carga procesada',
@@ -271,7 +285,7 @@ function renderizarTabla(pagina = 1) {
     let html = '';
     for (let i = desde; i < hasta; i++) {
         const a = todosLosArticulos[i];
-        const habilitado = articulosHabilitados[a.did];
+        const habilitado = esArticuloHabilitado(a.did);
         html += `
             <tr>
                 <td>${i + 1}</td>
@@ -319,10 +333,13 @@ async function cfgToggle(didArticulo, checkbox) {
             const estadoTexto = result.habilitado ? 'habilitado' : 'deshabilitado';
             showToast(`${nombreArticulo}: ${estadoTexto} correctamente`, 'success');
             // Actualizar estado en articulosHabilitados
+            const key = String(didArticulo);
             if (result.habilitado == 1) {
-                articulosHabilitados[didArticulo] = true;
+                articulosHabilitados[key] = true;
+                delete articulosDeshabilitados[key];
             } else {
-                delete articulosHabilitados[didArticulo];
+                delete articulosHabilitados[key];
+                articulosDeshabilitados[key] = true;
             }
         } else {
             checkbox.checked = !checkbox.checked;
@@ -363,7 +380,7 @@ const articulosPorPaginaCarga = 50;
 // Cargar artículos incorporados
 function cargarArticulosIncorporados() {
     // Filtrar solo artículos incorporados (habilitados)
-    articulosIncorporados = todosLosArticulos.filter(a => articulosHabilitados[a.did]);
+    articulosIncorporados = todosLosArticulos.filter(a => esArticuloHabilitado(a.did));
     console.log(`Artículos incorporados: ${articulosIncorporados.length}`);
     renderizarTablaCarga(1);
 }
@@ -632,9 +649,7 @@ async function crearArchivoExcel() {
     });
     
     // Filtrar solo artículos incorporados (habilitados)
-    const articulosIncorporados = todosLosArticulos.filter(a => {
-        return articulosHabilitados[a.did];
-    });
+    const articulosIncorporados = todosLosArticulos.filter(a => esArticuloHabilitado(a.did));
     console.log('Artículos incorporados:', articulosIncorporados.length);
     
     // Agregar filas
@@ -756,9 +771,7 @@ async function procesarArchivoExcel() {
         await cargarTodosLosArticulos();
     }
     
-    const articulosIncorporados = todosLosArticulos.filter(a => {
-        return articulosHabilitados[a.did];
-    });
+    const articulosIncorporados = todosLosArticulos.filter(a => esArticuloHabilitado(a.did));
     
     let modificaciones = 0;
     let errores = [];
