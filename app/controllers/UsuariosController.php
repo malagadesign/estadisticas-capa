@@ -214,7 +214,7 @@ class UsuariosController {
                 $db->query(
                     "UPDATE usuarios 
                      SET usuario = ?, mail = ?, psw = ?, habilitado = ? 
-                     WHERE did = ?",
+                     WHERE did = ? AND superado = 0 AND elim = 0",
                     ['sssii', $usuario, $mail, $passwordHash, $habilitado, $did]
                 );
             } else {
@@ -222,14 +222,18 @@ class UsuariosController {
                 $db->query(
                     "UPDATE usuarios 
                      SET usuario = ?, mail = ?, habilitado = ? 
-                     WHERE did = ?",
+                     WHERE did = ? AND superado = 0 AND elim = 0",
                     ['ssii', $usuario, $mail, $habilitado, $did]
                 );
             }
 
             // Obtener datos actualizados para enviar notificación
             $usuarioActual = $db->fetchOne(
-                "SELECT did, usuario, mail, tipo, habilitado, `hash` FROM usuarios WHERE did = ? LIMIT 1",
+                "SELECT id, did, usuario, mail, tipo, habilitado, `hash` 
+                 FROM usuarios 
+                 WHERE did = ? AND superado = 0 AND elim = 0 
+                 ORDER BY id DESC 
+                 LIMIT 1",
                 ['i', $did]
             );
 
@@ -238,8 +242,8 @@ class UsuariosController {
                 if (empty($hash)) {
                     $hash = bin2hex(random_bytes(16));
                     $db->query(
-                        "UPDATE usuarios SET `hash` = ? WHERE did = ?",
-                        ['si', $hash, $did]
+                        "UPDATE usuarios SET `hash` = ? WHERE id = ?",
+                        ['si', $hash, $usuarioActual['id']]
                     );
                 }
 
