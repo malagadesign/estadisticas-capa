@@ -138,8 +138,9 @@
                     <div class="col-12">
                         <p class="text-muted">
                             <i class="fas fa-info-circle me-2"></i>
-                            Complete solo con números enteros (sin formato, sin separadores de miles, sin decimales para cantidades ni valores).
+                            Complete solo con números enteros (sin formato, sin separadores de miles, sin decimales para cantidades ni valores, sin letras).
                             Si copia y pega valores con formato (ej: 1.025,2 o 100.000,00), se eliminarán automáticamente los puntos y decimales.
+                            No se permiten letras en los campos numéricos (ej: "1000 u" o "10O" serán rechazados).
                             Luego súbalo sin cambiar su estructura:
                         </p>
                     </div>
@@ -514,7 +515,17 @@ function manejarPegado(input, event) {
 
 // Validar y normalizar valor
 function validarYNormalizar(valorTexto, tipo) {
-    // Primero limpiar el valor pegado (eliminar puntos y decimales)
+    // Validar letras primero (antes de limpiar)
+    if (tieneLetras(valorTexto)) {
+        return { valido: false, valor: 0, error: 'No se permiten letras, solo números enteros' };
+    }
+    
+    // Validar decimales
+    if (tieneDecimales(valorTexto)) {
+        return { valido: false, valor: 0, error: 'No se permiten decimales' };
+    }
+    
+    // Limpiar el valor pegado (eliminar puntos y decimales)
     let valorLimpio = limpiarValorPegado(valorTexto);
     
     // Para cantidades: solo enteros (sin decimales)
@@ -823,6 +834,12 @@ async function procesarArchivoExcel() {
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Cantidad ${did} vacía, ignorando`);
                 } else {
+                    // Validar letras primero (antes de limpiar)
+                    if (tieneLetras(dato)) {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: no se permiten letras, solo números enteros (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Cantidad ${did} tiene letras:`, dato);
+                        return;
+                    }
                     if (tieneDecimales(dato)) {
                         errores.push(`${articulo.nombre} - ${mercados[did]} Cantidad: no se permiten decimales (${dato})`);
                         console.error(`[Excel] Fila ${rowNumber} - Cantidad ${did} tiene decimales:`, dato);
@@ -859,6 +876,12 @@ async function procesarArchivoExcel() {
                 if (dato === '') {
                     console.log(`[Excel] Fila ${rowNumber} - Celda Valor ${did} vacía, ignorando`);
                 } else {
+                    // Validar letras primero (antes de limpiar)
+                    if (tieneLetras(dato)) {
+                        errores.push(`${articulo.nombre} - ${mercados[did]} Valor: no se permiten letras, solo números enteros (${dato})`);
+                        console.error(`[Excel] Fila ${rowNumber} - Valor ${did} tiene letras:`, dato);
+                        return;
+                    }
                     if (tieneDecimales(dato)) {
                         errores.push(`${articulo.nombre} - ${mercados[did]} Valor: no se permiten decimales (${dato})`);
                         console.error(`[Excel] Fila ${rowNumber} - Valor ${did} tiene decimales:`, dato);

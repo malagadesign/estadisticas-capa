@@ -182,6 +182,15 @@
         return false;
     };
 
+    window.tieneLetras = function(valorTexto) {
+        if (!valorTexto) return false;
+        const valor = String(valorTexto).trim();
+        // Detectar letras (a-z, A-Z) y caracteres especiales que no sean números, puntos, comas o espacios
+        // Permitimos puntos (separadores de miles) y comas (decimales) porque ya los procesamos
+        const tieneLetras = /[a-zA-Z]/.test(valor);
+        return tieneLetras;
+    };
+
     window.limpiarValorPegado = function(valorTexto) {
         if (!valorTexto) return '';
         let valor = String(valorTexto).trim();
