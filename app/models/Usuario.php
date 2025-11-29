@@ -77,9 +77,25 @@ class Usuario {
     public function changePassword($did, $newPassword) {
         $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
         
+        // Obtener usuario para verificar si tiene hash
+        $user = $this->getById($did);
+        $hash = $user['hash'] ?? '';
+        
+        // Si no tiene hash, crear uno nuevo
+        if (empty($hash)) {
+            $hash = bin2hex(random_bytes(16));
+            return $this->db->query(
+                "UPDATE usuarios 
+                 SET psw = ?, hash = ? 
+                 WHERE did = ?",
+                ['ssi', $passwordHash, $hash, $did]
+            );
+        }
+        
+        // Si ya tiene hash, mantenerlo y solo actualizar la contraseña
         return $this->db->query(
             "UPDATE usuarios 
-             SET psw = ?, hash = '' 
+             SET psw = ? 
              WHERE did = ?",
             ['si', $passwordHash, $did]
         );

@@ -72,11 +72,13 @@ class CuentaController {
                 ['si', $passwordHash, $userId]
             );
             
-            // Limpiar hash si existía
-            if (!empty($user['hash'])) {
+            // Asegurar que el usuario tenga un hash único (crear si no existe, mantener si ya existe)
+            $hash = $user['hash'] ?? '';
+            if (empty($hash)) {
+                $hash = bin2hex(random_bytes(16));
                 $db->query(
-                    "UPDATE usuarios SET hash = '' WHERE did = ?",
-                    ['i', $userId]
+                    "UPDATE usuarios SET hash = ? WHERE did = ?",
+                    ['si', $hash, $userId]
                 );
             }
             
